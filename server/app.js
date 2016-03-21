@@ -21,6 +21,7 @@ Meteor.startup(function() {
                     _id: Meteor.uuid(),
                     title: "New Event",
                     start: eventStart,
+                    end: allDay ? moment(eventStart).add(1, "day").toDate() : eventStart,
                     allDay: allDay
                 });
                 if (events.length <= 100) {
@@ -37,10 +38,11 @@ Meteor.startup(function() {
                 }
             }
         },
-        "dropEvent": function(eventId, eventStart, eventEnd, allDay) {
+        "dropEvent": function(eventId, eventName, eventStart, eventEnd, allDay) {
             check(eventId, String);
+            check(eventName, String);
             check(eventStart, Date);
-            check(eventEnd, Date);
+            check(eventEnd || new Date(), Date);
             if (this.userId) {
                 var events = Meteor.users.findOne({
                     _id: this.userId
@@ -49,13 +51,34 @@ Meteor.startup(function() {
                     return a._id === eventId;
                 });
                 if (eventIndex !== -1) {
+                    events[eventIndex].title = eventName;
                     events[eventIndex].start = eventStart;
-                    if (eventEnd) {
-                        events[eventIndex].end = eventEnd;
-                    } else {
-                        delete events[eventIndex].end
-                    }
+                    events[eventIndex].end = eventEnd || eventStart;
                     events[eventIndex].allDay = allDay;
+                    Meteor.users.update({
+                        _id: this.userId
+                    }, {
+                        $set: {
+                            events: events
+                        }
+                    });
+                }
+                else {
+                    throw new Meteor.Error("event-not-found");
+                }
+            }
+        },
+        "deleteEvent": function (eventId) {
+            check(eventId, String);
+            if (this.userId) {
+                var events = Meteor.users.findOne({
+                    _id: this.userId
+                }).events || [];
+                var eventIndex = events.findIndex(function(a) {
+                    return a._id === eventId;
+                });
+                if (eventIndex !== -1) {
+                    events.splice(eventIndex, 1);
                     Meteor.users.update({
                         _id: this.userId
                     }, {

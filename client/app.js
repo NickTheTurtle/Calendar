@@ -1,4 +1,12 @@
 Meteor.startup(function() {
+    var startDate = $("#startDate").datetimepicker({
+        format: "LL",
+        sideBySide: true
+    });
+    var endDate = $("#endDate").datetimepicker({
+        format: "LL",
+        sideBySide: true
+    });
     Session.set("selectedDate", false);
     Accounts.ui.config({
         passwordSignupFields: "USERNAME_AND_OPTIONAL_EMAIL"
@@ -7,9 +15,7 @@ Meteor.startup(function() {
         dayClick: function(date) {
             var wait = bootbox.dialog({
                 message: "Please wait while a new event is being added.",
-                title: "Adding Event",
-                onEscape: false,
-                closeButton: false
+                title: "Adding Event"
             });
             Meteor.call("addEvent", new Date(new Date(date._d).getTime() + (new Date).getTimezoneOffset() * 6e+4), !date.hasTime(), function(error, result) {
                 wait.modal("hide");
@@ -24,17 +30,15 @@ Meteor.startup(function() {
             });
         },
         eventClick: function(event) {
-            showModal("editEvent", "show");
             Session.set("selectedEvent", event._id);
+            showModal("editEvent", "show");
         },
         eventDrop: function(event, delta, revert) {
             var wait = bootbox.dialog({
                 message: "Please wait while the event is being moved to a new time.",
-                title: "Moving Event",
-                onEscape: false,
-                closeButton: false
+                title: "Moving Event"
             });
-            Meteor.call("dropEvent", event._id, new Date(new Date(event.start).getTime() + (new Date).getTimezoneOffset() * 6e+4), new Date(new Date(event.end).getTime() + (new Date).getTimezoneOffset() * 6e+4), !event.start.hasTime(), function(error, result) {
+            Meteor.call("dropEvent", event._id, event.title, new Date(new Date(event.start).getTime() + (new Date).getTimezoneOffset() * 6e+4), event.end ? new Date(new Date(event.end).getTime() + (new Date).getTimezoneOffset() * 6e+4) : event.end, !event.start.hasTime(), function(error, result) {
                 wait.modal("hide");
                 if (error) {
                     bootbox.alert({
@@ -52,7 +56,7 @@ Meteor.startup(function() {
                 onEscape: false,
                 closeButton: false
             });
-            Meteor.call("dropEvent", event._id, new Date(new Date(event.start).getTime() + (new Date).getTimezoneOffset() * 6e+4), new Date(new Date(event.end).getTime() + (new Date).getTimezoneOffset() * 6e+4), !event.start.hasTime(), function(error, result) {
+            Meteor.call("dropEvent", event._id, event.title, new Date(new Date(event.start).getTime() + (new Date).getTimezoneOffset() * 6e+4), event.end ? new Date(new Date(event.end).getTime() + (new Date).getTimezoneOffset() * 6e+4) : event.end, !event.start.hasTime(), function(error, result) {
                 wait.modal("hide");
                 if (error) {
                     bootbox.alert({
@@ -84,27 +88,71 @@ Meteor.startup(function() {
         Meteor.user();
         calendar.refetchEvents();
     });
-    Template.body.helpers({
-        selectedEvent: function() {
-            Session.get("selectedEvent");
-            return Meteor.user().events.find(function(a) {
-                return a._id === Session.get("selectedEvent");
-            }) || {
-                title: "",
-                start: "",
-                end: "",
-                allDay: ""
-            };
-        }
+    $("#deleteEvent").click(function() {
+        bootbox.confirm({
+            title: "Delete Event",
+            message: "Are you sure you want to delete this event? It cannot be undone.",
+            callback: function(result) {
+                if (result) {
+                    var wait = bootbox.dialog({
+                        message: "Please wait while the event is being deleted.",
+                        title: "Deleting Event",
+                        onEscape: false,
+                        closeButton: false
+                    });
+                    Meteor.call("deleteEvent", Session.get("selectedEvent"), function(error) {
+                        wait.modal("hide");
+                        if (error) {
+                            bootbox.alert({
+                                title: "Error",
+                                message: "An error occurred. Please try again later."
+                            });
+                        }
+                    });
+                }
+            }
+        });
+    });
+    $("#editEvent").click(function() {
+        var wait = bootbox.dialog({
+            message: "Please wait while the event is being deleted.",
+            title: "Deleting Event",
+            onEscape: false,
+            closeButton: false
+        });
+        Meteor.call("dropEvent", Session.get("selectedEvent"), $("#eventName").val(""), startDate.data("DateTimePicker").date, endDate.data("DateTimePicker").date, event.allDay, function(error) {
+            wait.modal("hide");
+            if (error) {
+                bootbox.alert({
+                    title: "Error",
+                    message: "An error occurred. Please try again later."
+                });
+            }
+        });
     });
 
     function showModal(modal, state) {
         $("#" + modal).modal(state);
-        $("#startDate").datetimepicker({
-            sideBySide: true
-        });
-        $("#endDate").datetimepicker({
-            sideBySide: true
-        });
+        var event = Meteor.user().events.find(function(a) {
+            return Session.equals("selectedEvent", a._id);
+        }) || {
+            title: "",
+            start: "",
+            end: "",
+            allDay: ""
+        };
+        $("#eventName").val(event.title);
+        if (event.allDay) {
+            startDate.data("DateTimePicker").format("LL");
+            endDate.data("DateTimePicker").format("LL");
+            startDate.data("DateTimePicker").date(event.start || null);
+            endDate.data("DateTimePicker").date(moment(event.end).subtract(1, "day") || event.start || null);
+        }
+        else {
+            startDate.data("DateTimePicker").format("LLL");
+            endDate.data("DateTimePicker").format("LLL");
+            startDate.data("DateTimePicker").date(event.start || null);
+            endDate.data("DateTimePicker").date(event.end || null);
+        }
     }
 });
