@@ -240,7 +240,7 @@ Meteor.startup(function() {
             allDay: ""
         };
         if ($("#allDay").prop("checked")) {
-            Meteor.call("dropToAllDayEvent", Session.get("selectedEvent"), $("#eventName").val(), startDate.data("DateTimePicker").date() ? moment(startDate.data("DateTimePicker").date().toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4).stripTime().toDate() : event.start, endDate.data("DateTimePicker").date() ? moment(endDate.data("DateTimePicker").date().toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4).add(1, "day").stripTime().toDate() : event.end, function(error) {
+            Meteor.call("dropToAllDayEvent", Session.get("selectedEvent"), $("#eventName").val(), startDate.data("DateTimePicker").date() ? moment(startDate.data("DateTimePicker").date().stripTime().toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4).toDate() : event.start, endDate.data("DateTimePicker").date() ? moment(endDate.data("DateTimePicker").date().stripTime().toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4).add(1, "day").toDate() : event.end, function(error) {
                 wait.modal("hide");
                 if (error) {
                     bootbox.alert({
