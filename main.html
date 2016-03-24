@@ -29,20 +29,45 @@
             </div>
           </div>
           <div class="form-group">
-            <div class="input-group datetimepicker">
-              <span class="input-group-addon">Start</span>
-              <input class="form-control" id="startDate" />
+            <div class="row">
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-addon">Start Date</span>
+                  <input class="form-control" id="startDate" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-addon">Start Time</span>
+                  <input class="form-control" id="startTime" />
+                </div>
+              </div>
             </div>
           </div>
           <div class="form-group">
-            <div class="input-group datetimepicker">
-              <span class="input-group-addon">End</span>
-              <input class="form-control" id="endDate" />
+            <div class="row">
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-addon">End Date</span>
+                  <input class="form-control" id="endDate" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-addon">End Time</span>
+                  <input class="form-control" id="endTime" />
+                </div>
+              </div>
             </div>
+          </div>
+          <div class="form-group">
+            <label>
+              <input type="checkbox" id="allDay" /> All Day
+            </label>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-success" id="editEvent" data-dismiss="modal">Save</button>
+          <button type="button" class="btn btn-success" id="updateEvent" data-dismiss="modal">Save</button>
           <button type="button" class="btn btn-danger" id="deleteEvent" data-dismiss="modal">Delete</button>
         </div>
       </div>
