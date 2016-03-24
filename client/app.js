@@ -318,7 +318,6 @@ Meteor.startup(() => {
                             message: "An error occurred. Please try again later."
                         });
                     }
-                    revert();
                 }
             });
         }
@@ -338,7 +337,6 @@ Meteor.startup(() => {
                             message: "An error occurred. Please try again later."
                         });
                     }
-                    revert();
                 }
             });
         }
