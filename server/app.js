@@ -1,3 +1,4 @@
+/* globals moment */
 Meteor.startup(function() {
     Meteor.users.deny({
         insert: function() {
@@ -13,7 +14,6 @@ Meteor.startup(function() {
     Meteor.methods({
         "addAllDayEvent": function(eventStart) {
             check(eventStart, Date);
-            eventStart = moment(eventStart).stripTime().toDate();
             if (this.userId) {
                 var events = Meteor.users.findOne({
                     _id: this.userId
@@ -43,7 +43,7 @@ Meteor.startup(function() {
                 throw new Meteor.Error("not-logged-in");
             }
         },
-        addNonAllDayEvent: function (eventStart) {
+        "addNonAllDayEvent": function (eventStart) {
             check(eventStart, Date);
             if (this.userId) {
                 var events = Meteor.users.findOne({

@@ -22,8 +22,8 @@ Meteor.startup(function() {
                 message: "Please wait while a new event is being added.",
                 title: "Adding Event"
             });
-            if (date.hasTime()) {
-                Meteor.call("addAllDayEvent", new Date(new Date(date._d).getTime() + (new Date).getTimezoneOffset() * 6e+4), function(error, result) {
+            if (!date.hasTime()) {
+                Meteor.call("addAllDayEvent", moment(new Date(date.toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4)).stripTime().toDate(), function(error, result) {
                     wait.modal("hide");
                     if (error) {
                         if (error.error === "event-amount-exceeded") {
@@ -42,7 +42,7 @@ Meteor.startup(function() {
                 });
             }
             else {
-                Meteor.call("addNonAllDayEvent", new Date(new Date(date._d).getTime() + (new Date).getTimezoneOffset() * 6e+4), function(error, result) {
+                Meteor.call("addNonAllDayEvent", new Date(date.toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4), function(error, result) {
                     wait.modal("hide");
                     if (error) {
                         if (error.error === "event-amount-exceeded") {
@@ -152,16 +152,30 @@ Meteor.startup(function() {
                 message: "Please wait while the event is being resized.",
                 title: "Resizing Event"
             });
-            Meteor.call("dropEvent", event._id, event.title, new Date(new Date(event.start).getTime() + (new Date).getTimezoneOffset() * 6e+4), event.end ? new Date(new Date(event.end).getTime() + (new Date).getTimezoneOffset() * 6e+4) : event.end, !moment(event.start).hasTime(), function(error, result) {
-                wait.modal("hide");
-                if (error) {
-                    bootbox.alert({
-                        title: "Error",
-                        message: "An error occurred. Please try again later."
-                    });
-                    revert();
-                }
-            });
+            if (event.start.hasTime()) {
+                Meteor.call("dropToNonAllDayEvent", event._id, event.title, new Date(new Date(event.start).getTime() + (new Date).getTimezoneOffset() * 6e+4), event.end ? new Date(new Date(event.end).getTime() + (new Date).getTimezoneOffset() * 6e+4) : null, function(error, result) {
+                    wait.modal("hide");
+                    if (error) {
+                        bootbox.alert({
+                            title: "Error",
+                            message: "An error occurred. Please try again later."
+                        });
+                        revert();
+                    }
+                });
+            }
+            else {
+                Meteor.call("dropToAllDayEvent", event._id, event.title, moment(new Date(event.start).getTime() + (new Date).getTimezoneOffset() * 6e+4).stripTime().toDate(), event.end ? moment(new Date(event.end).getTime() + (new Date).getTimezoneOffset() * 6e+4).stripTime().toDate() : null, function(error, result) {
+                    wait.modal("hide");
+                    if (error) {
+                        bootbox.alert({
+                            title: "Error",
+                            message: "An error occurred. Please try again later."
+                        });
+                        revert();
+                    }
+                });
+            }
         },
         header: {
             left: "today prevYear,prev next,nextYear",
@@ -226,18 +240,19 @@ Meteor.startup(function() {
             allDay: ""
         };
         if ($("#allDay").prop("checked")) {
-            Meteor.call("dropAllDayEvent", Session.get("selectedEvent"), $("#eventName").val(), moment(startDate.data("DateTimePicker").date()).stripTime().toDate(), moment(endDate.data("DateTimePicker").date()).stripTime().toDate(), function(error) {
+            Meteor.call("dropToAllDayEvent", Session.get("selectedEvent"), $("#eventName").val(), startDate.data("DateTimePicker").date() ? moment(startDate.data("DateTimePicker").date().toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4).stripTime().toDate() : event.start, endDate.data("DateTimePicker").date() ? moment(endDate.data("DateTimePicker").date().toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4).add(1, "day").stripTime().toDate() : event.end, function(error) {
                 wait.modal("hide");
                 if (error) {
                     bootbox.alert({
                         title: "Error",
                         message: "An error occurred. Please try again later."
                     });
+                    console.log(error.error);
                 }
             });
         }
         else {
-            Meteor.call("dropNonAllDayEvent", Session.get("selectedEvent"), $("#eventName").val(), startTime.data("DateTimePicker").date(), endTime.data("DateTimePicker").date(), function(error) {
+            Meteor.call("dropToNonAllDayEvent", Session.get("selectedEvent"), $("#eventName").val(), startDate.data("DateTimePicker").date() ? moment(startDate.data("DateTimePicker").date().stripTime().toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4).add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes").toDate() : event.start, endDate.data("DateTimePicker").date() ? moment(startDate.data("DateTimePicker").date().stripTime().toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4).add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes").toDate() : event.end, function(error) {
                 wait.modal("hide");
                 if (error) {
                     bootbox.alert({
@@ -262,21 +277,21 @@ Meteor.startup(function() {
             $("#endDate").prop("readonly", false);
             $("#startTime").prop("readonly", true);
             $("#endTime").prop("readonly", true);
-            startDate.data("DateTimePicker").date(moment(event.start).toDate());
-            endDate.data("DateTimePicker").date(moment(event.end).subtract(1, "day").toDate());
+            startDate.data("DateTimePicker").date(moment(new Date(event.start.toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4)).toDate());
+            endDate.data("DateTimePicker").date(moment(new Date(event.end.toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4)).subtract(1, "day").toDate());
             startTime.data("DateTimePicker").date(null);
             endTime.data("DateTimePicker").date(null);
         }
         else {
-            $("#startDate").prop("readonly", true);
+            $("#startDate").prop("readonly", false);
             $("#endDate").prop("readonly", true);
             $("#startTime").prop("readonly", false);
             $("#endTime").prop("readonly", false);
             $("#allDay").prop("checked", false);
-            startDate.data("DateTimePicker").date(moment(event.start).stripTime().toDate());
-            endDate.data("DateTimePicker").date(moment(event.start).stripTime().toDate());
-            startTime.data("DateTimePicker").date(moment(event.start).toDate());
-            endTime.data("DateTimePicker").date(moment(event.start).toDate());
+            startDate.data("DateTimePicker").date(moment(new Date(event.start.toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4)).stripTime().toDate());
+            endDate.data("DateTimePicker").date(moment(new Date(event.end.toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4)).stripTime().toDate());
+            startTime.data("DateTimePicker").date(moment(new Date(event.start.toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4)).toDate());
+            endTime.data("DateTimePicker").date(moment(new Date(event.end.toDate().getTime() + (new Date).getTimezoneOffset() * 6e+4)).toDate());
         }
     });
 
@@ -303,15 +318,15 @@ Meteor.startup(function() {
             endTime.data("DateTimePicker").date(null);
         }
         else {
-            $("#startDate").prop("readonly", true);
+            $("#startDate").prop("readonly", false);
             $("#endDate").prop("readonly", true);
             $("#startTime").prop("readonly", false);
             $("#endTime").prop("readonly", false);
             $("#allDay").prop("checked", false);
             startDate.data("DateTimePicker").date(moment(event.start).stripTime().toDate());
-            endDate.data("DateTimePicker").date(moment(event.start).stripTime().toDate());
+            endDate.data("DateTimePicker").date(moment(event.end).stripTime().toDate());
             startTime.data("DateTimePicker").date(moment(event.start).toDate());
-            endTime.data("DateTimePicker").date(moment(event.start).toDate());
+            endTime.data("DateTimePicker").date(moment(event.end).toDate());
         }
     }
 });
