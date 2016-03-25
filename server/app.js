@@ -80,9 +80,111 @@ Meteor.startup(() => {
                     throw new Meteor.Error("not-logged-in");
                 }
             },
-            dropToAllDayEvent(eventId, eventName, eventStart, eventEnd) {
+            dropToAllDayEvent(eventId, eventName, eventStart, eventEnd, repeat) {
                 check(eventId, String);
                 check(eventName, String);
+                if (repeat) {
+                    check(repeat.type, String);
+                    check(repeat.skip, Match.Integer);
+                    check(repeat.skip, Match.Where((a) => a > 0));
+                    check(repeat.start, Date);
+                    check(repeat.end, Date);
+                    if (repeat.type === 0) { //daily
+                        repeat = {
+                            type: repeat.type,
+                            skip: repeat.skip,
+                            start: repeat.start,
+                            end: repeat.end
+                        };
+                    }
+                    else if (repeat.type === 1) { //weekly
+                        check(repeat.weekDays, [Match.Integer]);
+                        if (repeat.weekDays.length > 7) {
+                            throw new Meteor.Error("day-of-week-length");
+                        }
+                        repeat.weekDays.forEach((a) => {
+                            if (a < 0 || a > 6) {
+                                throw new Meteor.Error("day-of-week-out-of-range");
+                            }
+                        });
+                        repeat = {
+                            type: repeat.type,
+                            skip: repeat.skip,
+                            start: repeat.start,
+                            end: repeat.end,
+                            weekDays: repeat.weekDays
+                        };
+                    }
+                    else if (repeat.type === 2) { //same day each month
+                        check(repeat.monthDays, [Match.Integer]);
+                        if (repeat.monthDays.length > 31) {
+                            throw new Meteor.Error("day-of-month-length");
+                        }
+                        repeat.monthDays.forEach((a) => {
+                            if (a < 1 || a > 31) {
+                                throw new Meteor.Error("day-of-month-out-of-range");
+                            }
+                        });
+                        repeat = {
+                            type: repeat.type,
+                            skip: repeat.skip,
+                            start: repeat.start,
+                            end: repeat.end,
+                            monthDays: repeat.monthDays
+                        };
+                    }
+                    else if (repeat.type === 3) { //same week each month
+                        check(repeat.weekDays, [Match.Integer]);
+                        if (repeat.weekDays.length > 7) {
+                            throw new Meteor.Error("day-of-week-length");
+                        }
+                        repeat.weekDays.forEach((a) => {
+                            if (a < 0 || a > 6) {
+                                throw new Meteor.Error("day-of-week-out-of-range");
+                            }
+                        });
+                        check(repeat.weekNumber, Match.Integer);
+                        if (repeat.weekNumber.length < 1 || repeat.weekNumber.length > 5) {
+                            throw new Meteor.Error("number-of-week-out-of-range");
+                        }
+                        repeat = {
+                            type: repeat.type,
+                            skip: repeat.skip,
+                            start: repeat.start,
+                            end: repeat.end,
+                            weekDays: repeat.weekDays,
+                            weekNumber: repeat.weekNumber
+                        };
+                    }
+                    else if (repeat.type === 4) { //same day each year
+                        check(repeat.month, Match.Integer);
+                        if (repeat.month < 1 && repeat.month > 12) {
+                            throw new Meteor.Error("month-out-of-range");
+                        }
+                        check(repeat.date, Match.Integer);
+                        if (repeat.date < 1 && repeat.month > 31) {
+                            throw new Meteor.Error("date-out-of-range");
+                        }
+                        repeat = {
+                            type: repeat.type,
+                            skip: repeat.skip,
+                            start: repeat.start,
+                            end: repeat.end,
+                            month: repeat.month,
+                            date: repeat.date
+                        };
+                    }
+                    else if (repeat.type === 5) { //same week each year
+                        check(repeat.weekDays, Match.Integer);
+                        if (repeat.weekDays < 0 || repeat.weekDays > 6) {
+                            throw new Meteor.Error("day-of-week-out-of-range");
+                        }
+                        check(repeat.weekNumber, Match.Integer);
+                        if (repeat.weekNumber.length < 1 || repeat.weekNumber.length > 5) {
+                            throw new Meteor.Error("number-of-week-out-of-range");
+                        }
+                    }
+                }
                 if (eventName.length > 50) {
                     throw new Meteor.Error("event-name-length");
                 }
