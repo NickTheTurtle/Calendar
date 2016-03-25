@@ -3,16 +3,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-<body>
+<template name="main">
   <div class="container">
-    <div class="page-header">
-      <h1>Calendric</h1> {{>loginButtons}}
-    </div>
-    <div class="row">
-      <div class="col-md-offset-2 col-md-8">
-        <div id="calendar"></div>
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target=".collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/calendar">Calendric</a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <li class="{{active 'calendar'}}"><a href="/calendar">Home</a></li>
+            <li class="{{active 'list'}}"><a href="/list">List of Events</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            {{>loginButtons}}
+          </ul>
+        </div>
       </div>
-    </div>
+    </nav>
+    {{>yield}}
   </div>
   <div class="modal fade" id="editEvent" tabindex="-1">
     <div class="modal-dialog">
@@ -73,4 +88,37 @@
       </div>
     </div>
   </div>
-</body>
+</template>
+<template name="calendar">
+  <div class="page-header">
+    <h2>Calendric</h2>
+  </div>
+  <div class="row">
+    <div class="col-md-offset-2 col-md-8">
+      <div id="calendar"></div>
+    </div>
+  </div>
+</template>
+<template name="list">
+  <div class="page-header">
+    <h2>List of Events</h2>
+  </div>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Event Name</th>
+        <th>Start Date</th>
+        <th>End Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each events}}
+      <tr id="{{_id}}">
+        <td>{{title}}</td>
+        <td>{{start}}</td>
+        <td>{{end}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</template>

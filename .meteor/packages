@@ -19,9 +19,10 @@ ecmascript              # Enable ECMAScript2015+ syntax in app code
 accounts-password
 twbs:bootstrap
 rzymek:fullcalendar
-accounts-ui
 check
 mizzao:bootboxjs
 tsega:bootstrap3-datetimepicker
 momentjs:moment
 nunohvidal:lz-string
+iron:router
+ian:accounts-ui-bootstrap-3
