@@ -410,8 +410,8 @@ Meteor.startup(() => {
     });
     Template.list.events({
         "click tr" (event) {
-            if (JSON.parse(LZString.decompressFromUTF16(Meteor.user().events)).findIndex((a) => a._id === event.target.id) !== -1) {
-                Session.set("selectedEvent", event.target.id);
+            if (JSON.parse(LZString.decompressFromUTF16(Meteor.user().events)).findIndex((a) => a._id === this._id) !== -1) {
+                Session.set("selectedEvent", this._id);
                 showModal("editEvent", "show");
             }
         }
