@@ -95,8 +95,86 @@
             </div>
           </div>
           <div class="form-group">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-addon">Start Date</span>
+                  <input class="form-control" id="repeatStart" />
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="input-group">
+                  <span class="input-group-addon">End Date</span>
+                  <input class="form-control" id="repeatEnd" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-group-addon">Skip Every {{repeatSkip}}</span>
+              <input type="number" class="form-control" id="repeatSkip" min="0" max="2147483647" />
+            </div>
+          </div>
+          {{#if repeatWeekNumber}}
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-group-addon">Number of week</span>
+              <select class="form-control" id="repeatWeekNumber">
+                <option value="1">First</option>
+                <option value="2">Second</option>
+                <option value="3">Third</option>
+                <option value="4">Fourth</option>
+                <option value="5">Last</option>
+              </select>
+            </div>
+          </div>
+          {{/if}} {{#if repeatWeekDay}}
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-group-addon">Days of week</span>
+              <select class="form-control" id="repeatWeekDay" multiple>
+                <option value="0">Sunday</option>
+                <option value="1">Monday</option>
+                <option value="2">Tuesday</option>
+                <option value="3">Wednesday</option>
+                <option value="4">Thursday</option>
+                <option value="5">Friday</option>
+                <option value="6">Saturday</option>
+              </select>
+            </div>
+          </div>
+          {{/if}} {{#if repeatMonth}}
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-group-addon">Month</span>
+              <select class="form-control" id="repeatMonth">
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+              </select>
+            </div>
+          </div>
+          {{/if}} {{#if repeatDate}}
+          <div class="form-group">
+            <div class="input-group">
+              <span class="input-group-addon">Date of month</span>
+              <input type="number" class="form-control" id="repeatDate" min="1" max="31" />
+            </div>
+          </div>
+          {{/if}}
+          <div class="form-group">
             <label>
-              <input type="checkbox" id="allDay" /> Repeat
+              <input type="checkbox" id="repeat" /> Repeat
             </label>
           </div>
         </div>

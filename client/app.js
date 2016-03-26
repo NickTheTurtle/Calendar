@@ -4,8 +4,11 @@ Meteor.startup(() => {
     var startTime;
     var endDate;
     var endTime;
+    var repeatStart;
+    var repeatEnd;
     var calendar;
     Session.set("selectedDate", false);
+    Session.set("repeatType", -1);
     Accounts.ui.config({
         passwordSignupFields: "USERNAME_AND_OPTIONAL_EMAIL",
         forceEmailLowercase: true,
@@ -13,16 +16,34 @@ Meteor.startup(() => {
     });
     Template.main.onRendered(() => {
         startDate = $("#startDate").datetimepicker({
-            format: "LL"
+            format: "LL",
+            minDate: moment([1500, 0, 1]),
+            maxDate: moment([2500, 11, 31])
         });
         startTime = $("#startTime").datetimepicker({
-            format: "LT"
+            format: "LT",
+            minDate: moment([1500, 0, 1]),
+            maxDate: moment([2500, 11, 31])
         });
         endDate = $("#endDate").datetimepicker({
-            format: "LL"
+            format: "LL",
+            minDate: moment([1500, 0, 1]),
+            maxDate: moment([2500, 11, 31])
         });
         endTime = $("#endTime").datetimepicker({
-            format: "LT"
+            format: "LT",
+            minDate: moment([1500, 0, 1]),
+            maxDate: moment([2500, 11, 31])
+        });
+        repeatStart = $("#repeatStart").datetimepicker({
+            format: "LL",
+            minDate: moment([1500, 0, 1]),
+            maxDate: moment([2500, 11, 31])
+        });
+        repeatEnd = $("#repeatEnd").datetimepicker({
+            format: "LL",
+            minDate: moment([1500, 0, 1]),
+            maxDate: moment([2500, 11, 31])
         });
     });
     Template.calendar.onRendered(() => {
@@ -32,60 +53,34 @@ Meteor.startup(() => {
                         message: "Please wait while a new event is being added.",
                         title: "Adding Event"
                     });
-                    if (!date.hasTime()) {
-                        Meteor.call("addAllDayEvent", moment(date.toDate()).stripTime().toDate(), (error, result) => {
-                            wait.modal("hide");
-                            if (error) {
-                                if (error.error === "event-amount-exceeded") {
-                                    bootbox.alert({
-                                        title: "Error",
-                                        message: "Your total amount of events has exceeded 100. To continue to add more events, please delete some events."
-                                    });
-                                }
-                                else if (error.error === "not-logged-in") {
-                                    bootbox.alert({
-                                        title: "Error",
-                                        message: "You are not logged in."
-                                    });
-                                }
-                                else {
-                                    bootbox.alert({
-                                        title: "Error",
-                                        message: "An error occurred. Please try again later."
-                                    });
-                                }
+                    Meteor.call("addEvent", !date.hasTime() ? moment(date.toDate()).stripTime().toDate() : moment(date.toDate()).toDate(), !date.hasTime(), (error, result) => {
+                        wait.modal("hide");
+                        if (error) {
+                            if (error.error === "event-amount-exceeded") {
+                                bootbox.alert({
+                                    title: "Error",
+                                    message: "Your total amount of events has exceeded 100. To continue to add more events, please delete some events."
+                                });
                             }
-                        });
-                    }
-                    else {
-                        Meteor.call("addNonAllDayEvent", moment(date.toDate()).toDate(), (error, result) => {
-                            wait.modal("hide");
-                            if (error) {
-                                if (error.error === "event-amount-exceeded") {
-                                    bootbox.alert({
-                                        title: "Error",
-                                        message: "Your total amount of events has exceeded 100. To continue to add more events, please delete some events."
-                                    });
-                                }
-                                else if (error.error === "not-logged-in") {
-                                    bootbox.alert({
-                                        title: "Error",
-                                        message: "You are not logged in."
-                                    });
-                                }
-                                else {
-                                    bootbox.alert({
-                                        title: "Error",
-                                        message: "An error occurred. Please try again later."
-                                    });
-                                }
+                            else if (error.error === "not-logged-in") {
+                                bootbox.alert({
+                                    title: "Error",
+                                    message: "You are not logged in."
+                                });
                             }
-                        });
-                    }
+                            else {
+                                bootbox.alert({
+                                    title: "Error",
+                                    message: "An error occurred. Please try again later."
+                                });
+                            }
+                        }
+                    });
                 },
                 eventClick(event) {
                     if (JSON.parse(LZString.decompressFromUTF16(Meteor.user().events)).findIndex((a) => a._id === event._id) !== -1) {
                         Session.set("selectedEvent", event._id);
+                        Session.set("repeatType", event.repeat ? event.repeat.type : -1);
                         showModal("editEvent", "show");
                     }
                 },
@@ -95,76 +90,10 @@ Meteor.startup(() => {
                         title: "Moving Event"
                     });
                     if (jsEvent.ctrlKey || jsEvent.metaKey) {
-                        if (!(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0)) {
-                            Meteor.call("addNonAllDayEvent", moment(event.start).toDate(), (error, result) => {
-                                if (!error) {
-                                    Meteor.call("dropToNonAllDayEvent", result, event.title, moment(event.start).toDate(), moment(event.end).toDate() || null, (error, result) => {
-                                        wait.modal("hide");
-                                        if (error) {
-                                            if (error.error === "event-name-length") {
-                                                bootbox.alert({
-                                                    title: "Error",
-                                                    message: "The name given to the event is too long. Please make sure that it is under 50 characters."
-                                                });
-                                            }
-                                            else {
-                                                bootbox.alert({
-                                                    title: "Error",
-                                                    message: "An error occurred. Please try again later."
-                                                });
-                                            }
-                                            revert();
-                                        }
-                                    });
-                                }
-                                else {
+                        Meteor.call("addEvent", !(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0) ? moment(event.start).toDate() : moment(event.start).toDate(), !(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0), (error, result) => {
+                            if (!error) {
+                                Meteor.call("dropEvent", result, event.title, !(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0) ? moment(event.start).toDate() : moment(event.start).stripTime().toDate(), !(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0) ? (moment(event.end).stripTime().toDate() || null) : (moment(event.end).stripTime().toDate() || null), !(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0), (error, result) => {
                                     wait.modal("hide");
-                                    bootbox.alert({
-                                        title: "Error",
-                                        message: "An error occurred. Please try again later."
-                                    });
-                                    revert();
-                                }
-                            });
-                        }
-                        else {
-                            Meteor.call("addAllDayEvent", moment(event.start).toDate(), (error, result) => {
-                                if (!error) {
-                                    Meteor.call("dropToAllDayEvent", result, event.title, moment(event.start).stripTime().toDate(), moment(event.end).stripTime().toDate() || null, (error, result) => {
-                                        wait.modal("hide");
-                                        if (error) {
-                                            if (error.error === "event-name-length") {
-                                                bootbox.alert({
-                                                    title: "Error",
-                                                    message: "The name given to the event is too long. Please make sure that it is under 50 characters."
-                                                });
-                                            }
-                                            else {
-                                                bootbox.alert({
-                                                    title: "Error",
-                                                    message: "An error occurred. Please try again later."
-                                                });
-                                            }
-                                            revert();
-                                        }
-                                    });
-                                }
-                                else {
-                                    wait.modal("hide");
-                                    bootbox.alert({
-                                        title: "Error",
-                                        message: "An error occurred. Please try again later."
-                                    });
-                                    revert();
-                                }
-                            });
-                        }
-                    }
-                    else {
-                        if (!(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0)) {
-                            Meteor.call("dropToNonAllDayEvent", event._id, event.title, moment(event.start).toDate(), moment(event.end).toDate() || null, (error, result) => {
-                                wait.modal("hide");
-                                if (error) {
                                     if (error) {
                                         if (error.error === "event-name-length") {
                                             bootbox.alert({
@@ -180,13 +109,14 @@ Meteor.startup(() => {
                                         }
                                         revert();
                                     }
-                                    revert();
-                                }
-                            });
-                        }
-                        else {
-                            Meteor.call("dropToAllDayEvent", event._id, event.title, moment(event.start).stripTime().toDate(), moment(event.end).stripTime().toDate() || null, (error, result) => {
-                                wait.modal("hide");
+                                });
+                            }
+                        });
+                    }
+                    else {
+                        Meteor.call("dropEvent", event._id, event.title, !(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0) ? moment(event.start).toDate() : moment(event.start).stripTime().toDate(), !(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0) ? (moment(event.end).toDate() || null) : (moment(event.end).toDate() || null), moment(event.start).hours() === 0 && moment(event.start).minutes() === 0, (error, result) => {
+                            wait.modal("hide");
+                            if (error) {
                                 if (error) {
                                     if (error.error === "event-name-length") {
                                         bootbox.alert({
@@ -202,8 +132,9 @@ Meteor.startup(() => {
                                     }
                                     revert();
                                 }
-                            });
-                        }
+                                revert();
+                            }
+                        });
                     }
                 },
                 eventResize(event, delta, revert) {
@@ -211,9 +142,9 @@ Meteor.startup(() => {
                         message: "Please wait while the event is being resized.",
                         title: "Resizing Event"
                     });
-                    if (!(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0)) {
-                        Meteor.call("dropToNonAllDayEvent", event._id, event.title, moment(event.start).toDate(), moment(event.end).toDate() || null, (error, result) => {
-                            wait.modal("hide");
+                    Meteor.call("dropEvent", event._id, event.title, !(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0) ? moment(event.start).toDate() : moment(event.start).stripTime().toDate(), !(moment(event.start).hours() === 0 && moment(event.start).minutes() === 0) ? (moment(event.end).toDate() || null) : (moment(event.end).toDate() || null), moment(event.start).hours() === 0 && moment(event.start).minutes() === 0, (error, result) => {
+                        wait.modal("hide");
+                        if (error) {
                             if (error) {
                                 if (error.error === "event-name-length") {
                                     bootbox.alert({
@@ -229,28 +160,9 @@ Meteor.startup(() => {
                                 }
                                 revert();
                             }
-                        });
-                    }
-                    else {
-                        Meteor.call("dropToAllDayEvent", event._id, event.title, moment(event.start).stripTime().toDate(), moment(event.end).stripTime().toDate() || null, (error, result) => {
-                            wait.modal("hide");
-                            if (error) {
-                                if (error.error === "event-name-length") {
-                                    bootbox.alert({
-                                        title: "Error",
-                                        message: "The name given to the event is too long. Please make sure that it is under 50 characters."
-                                    });
-                                }
-                                else {
-                                    bootbox.alert({
-                                        title: "Error",
-                                        message: "An error occurred. Please try again later."
-                                    });
-                                }
-                                revert();
-                            }
-                        });
-                    }
+                            revert();
+                        }
+                    });
                 },
                 header: {
                     left: "today prevYear,prev next,nextYear",
@@ -276,8 +188,20 @@ Meteor.startup(() => {
     });
     Template.main.helpers({
         active(tab) {
-            return Router.current().route.getName() === tab ? "active" : "";
-        }
+                return Router.current().route.getName() === tab ? "active" : "";
+            },
+            repeatWeekNumber() {
+                return !$("#repeatType").prop("disabled") && Session.equals("repeatType", 3) || Session.equals("repeatType", 5);
+            },
+            repeatWeekDay() {
+                return !$("#repeatType").prop("disabled") && Session.equals("repeatType", 1) || Session.equals("repeatType", 3) || Session.equals("repeatType", 5);
+            },
+            repeatMonth() {
+                return !$("#repeatType").prop("disabled") && Session.equals("repeatType", 4) || Session.equals("repeatType", 5);
+            },
+            repeatDate() {
+                return !$("#repeatType").prop("disabled") && Session.equals("repeatType", 2) || Session.equals("repeatType", 4);
+            }
     });
     Template.list.helpers({
         events() {
@@ -340,44 +264,23 @@ Meteor.startup(() => {
                 end: "",
                 allDay: ""
             };
-            if ($("#allDay").prop("checked")) {
-                Meteor.call("dropToAllDayEvent", Session.get("selectedEvent"), $("#eventName").val(), startDate.data("DateTimePicker").date().toDate ? moment(startDate.data("DateTimePicker").date()).toDate() : moment(event.start), endDate.data("DateTimePicker").date().toDate ? endDate.data("DateTimePicker").date().add(1, "day").stripTime().toDate() : moment(event.end), (error) => {
-                    wait.modal("hide");
-                    if (error) {
-                        if (error.error === "event-name-length") {
-                            bootbox.alert({
-                                title: "Error",
-                                message: "The name given to the event is too long. Please make sure that it is under 50 characters."
-                            });
-                        }
-                        else {
-                            bootbox.alert({
-                                title: "Error",
-                                message: "An error occurred. Please try again later."
-                            });
-                        }
+            Meteor.call("dropEvent", Session.get("selectedEvent"), $("#eventName").val(), $("#allDay").prop("checked") ? (startDate.data("DateTimePicker").date().toDate ? moment(startDate.data("DateTimePicker").date()).toDate() : moment(event.start)) : (startDate.data("DateTimePicker").date().toDate ? startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes").toDate() : moment(event.start)), $("#allDay").prop("checked") ? (endDate.data("DateTimePicker").date().toDate ? endDate.data("DateTimePicker").date().add(1, "day").stripTime().toDate() : moment(event.end)) : (endDate.data("DateTimePicker").date().toDate ? startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes").toDate() : moment(event.end)), $("#allDay").prop("checked"), (error) => {
+                wait.modal("hide");
+                if (error) {
+                    if (error.error === "event-name-length") {
+                        bootbox.alert({
+                            title: "Error",
+                            message: "The name given to the event is too long. Please make sure that it is under 50 characters."
+                        });
                     }
-                });
-            }
-            else {
-                Meteor.call("dropToNonAllDayEvent", Session.get("selectedEvent"), $("#eventName").val(), startDate.data("DateTimePicker").date().toDate ? startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes").toDate() : moment(event.start), endDate.data("DateTimePicker").date().toDate ? startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes").toDate() : moment(event.end), (error) => {
-                    wait.modal("hide");
-                    if (error) {
-                        if (error.error === "event-name-length") {
-                            bootbox.alert({
-                                title: "Error",
-                                message: "The name given to the event is too long. Please make sure that it is under 50 characters."
-                            });
-                        }
-                        else {
-                            bootbox.alert({
-                                title: "Error",
-                                message: "An error occurred. Please try again later."
-                            });
-                        }
+                    else {
+                        bootbox.alert({
+                            title: "Error",
+                            message: "An error occurred. Please try again later."
+                        });
                     }
-                });
-            }
+                }
+            });
         },
         "change #allDay" () {
             var event = JSON.parse(LZString.decompressFromUTF16(Meteor.user().events)).find((a) => Session.equals("selectedEvent", a._id)) || {
@@ -392,7 +295,7 @@ Meteor.startup(() => {
                 $("#startTime").prop("disabled", true);
                 $("#endTime").prop("disabled", true);
                 startDate.data("DateTimePicker").date(moment(event.start).utc());
-                endDate.data("DateTimePicker").date(moment(event.end).utc().subtract(1, "day"));
+                endDate.data("DateTimePicker").date(event.end !== "1970-01-01T00:00:00.000Z" ? moment(event.end).utc().subtract(1, "day") : moment(event.start).utc());
                 startTime.data("DateTimePicker").date(null);
                 endTime.data("DateTimePicker").date(null);
             }
@@ -402,14 +305,62 @@ Meteor.startup(() => {
                 $("#startTime").prop("disabled", false);
                 $("#endTime").prop("disabled", false);
                 startDate.data("DateTimePicker").date(moment(event.start).utc().stripTime());
-                endDate.data("DateTimePicker").date(moment(event.end).utc().stripTime());
+                endDate.data("DateTimePicker").date(moment(event.start).utc().stripTime());
                 startTime.data("DateTimePicker").date(moment(event.start).utc());
                 endTime.data("DateTimePicker").date(moment(event.end).utc());
+            }
+        },
+        "change #repeatType" () {
+            Session.set("repeatType", parseFloat($("#repeatType").val()));
+        },
+        "change #repeat" () {
+            var event = JSON.parse(LZString.decompressFromUTF16(Meteor.user().events)).find((a) => Session.equals("selectedEvent", a._id)) || {
+                title: "",
+                start: "",
+                end: "",
+                allDay: "",
+                repeat: false
+            };
+            if ($("#repeat").prop("checked")) {
+                $("#repeatType").prop("disabled", false);
+                $("#repeatStart").prop("disabled", false);
+                $("#repeatEnd").prop("disabled", false);
+                $("#repeatSkip").prop("disabled", false);
+                $("#repeatWeekNumber").prop("disabled", false);
+                $("#repeatWeekDay").prop("disabled", false);
+                $("#repeatMonth").prop("disabled", false);
+                $("#repeatDay").prop("disabled", false);
+                $("#repeatType").val(event.repeat.type);
+                repeatStart.data("DateTimePicker").date(moment(event.repeat.start).utc().stripTime());
+                repeatEnd.data("DateTimePicker").date(moment(event.repeat.end).utc().stripTime());
+                $("#repeatSkip").val(event.repeat.skip);
+                $("#repeatWeekNumber").val(1);
+                $("#repeatWeekDay").val(0);
+                $("#repeatMonth").val(1);
+                $("#repeatDay").val(1);
+            }
+            else {
+                $("#repeatType").prop("disabled", true);
+                $("#repeatStart").prop("disabled", true);
+                $("#repeatEnd").prop("disabled", true);
+                $("#repeatSkip").prop("disabled", true);
+                $("#repeatWeekNumber").prop("disabled", true);
+                $("#repeatWeekDay").prop("disabled", true);
+                $("#repeatMonth").prop("disabled", true);
+                $("#repeatDay").prop("disabled", true);
+                $("#repeatType").val(0);
+                repeatStart.data("DateTimePicker").date(null);
+                repeatEnd.data("DateTimePicker").date(null);
+                $("#repeatSkip").val(0);
+                $("#repeatWeekNumber").val(1);
+                $("#repeatWeekDay").val(0);
+                $("#repeatMonth").val(1);
+                $("#repeatDay").val(1);
             }
         }
     });
     Template.list.events({
-        "click tr" (event) {
+        "click tr" () {
             if (JSON.parse(LZString.decompressFromUTF16(Meteor.user().events)).findIndex((a) => a._id === this._id) !== -1) {
                 Session.set("selectedEvent", this._id);
                 showModal("editEvent", "show");
@@ -435,9 +386,11 @@ Meteor.startup(() => {
             title: "",
             start: "",
             end: "",
-            allDay: ""
+            allDay: "",
+            repeat: false
         };
         $("#eventName").val(event.title);
+        $("#repeatType").val(0);
         if (event.allDay) {
             $("#startDate").prop("disabled", false);
             $("#endDate").prop("disabled", false);
@@ -445,7 +398,7 @@ Meteor.startup(() => {
             $("#endTime").prop("disabled", true);
             $("#allDay").prop("checked", true);
             startDate.data("DateTimePicker").date(moment(event.start).utc());
-            endDate.data("DateTimePicker").date(moment(event.end).utc().subtract(1, "day"));
+            endDate.data("DateTimePicker").date(event.end !== "1970-01-01T00:00:00.000Z" ? moment(event.end).utc().subtract(1, "day") : moment(event.start).utc());
             startTime.data("DateTimePicker").date(null);
             endTime.data("DateTimePicker").date(null);
         }
@@ -456,9 +409,45 @@ Meteor.startup(() => {
             $("#endTime").prop("disabled", false);
             $("#allDay").prop("checked", false);
             startDate.data("DateTimePicker").date(moment(event.start).utc().stripTime());
-            endDate.data("DateTimePicker").date(moment(event.end).utc().stripTime());
+            endDate.data("DateTimePicker").date(moment(event.start).utc().stripTime());
             startTime.data("DateTimePicker").date(moment(event.start).utc());
             endTime.data("DateTimePicker").date(moment(event.end).utc());
+        }
+        if (event.repeat) {
+            $("#repeatType").prop("disabled", false);
+            $("#repeatStart").prop("disabled", false);
+            $("#repeatEnd").prop("disabled", false);
+            $("#repeatSkip").prop("disabled", false);
+            $("#repeatWeekNumber").prop("disabled", false);
+            $("#repeatWeekDay").prop("disabled", false);
+            $("#repeatMonth").prop("disabled", false);
+            $("#repeatDay").prop("disabled", false);
+            $("#repeatType").val(event.repeat.type);
+            repeatStart.data("DateTimePicker").date(moment(event.repeat.start).utc().stripTime());
+            repeatEnd.data("DateTimePicker").date(moment(event.repeat.end).utc().stripTime());
+            $("#repeatSkip").val(event.repeat.skip);
+            $("#repeatWeekNumber").val(1);
+            $("#repeatWeekDay").val(0);
+            $("#repeatMonth").val(1);
+            $("#repeatDate").val(1);
+        }
+        else {
+            $("#repeatType").prop("disabled", true);
+            $("#repeatStart").prop("disabled", true);
+            $("#repeatEnd").prop("disabled", true);
+            $("#repeatSkip").prop("disabled", true);
+            $("#repeatWeekNumber").prop("disabled", true);
+            $("#repeatWeekDay").prop("disabled", true);
+            $("#repeatMonth").prop("disabled", true);
+            $("#repeatDay").prop("disabled", true);
+            $("#repeatType").val(0);
+            repeatStart.data("DateTimePicker").date(moment(event.start).utc().stripTime());
+            repeatEnd.data("DateTimePicker").date(moment(event.start).utc().stripTime());
+            $("#repeatSkip").val(0);
+            $("#repeatWeekNumber").val(1);
+            $("#repeatWeekDay").val(0);
+            $("#repeatMonth").val(1);
+            $("#repeatDate").val(1);
         }
     };
 });

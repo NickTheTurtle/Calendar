@@ -16,19 +16,22 @@ Meteor.startup(() => {
             }
     });
     Meteor.methods({
-        addAllDayEvent(eventStart) {
+        addEvent(eventStart, allDay) {
                 check(eventStart, Date);
+                if (moment(eventStart).isBefore([1500, 0, 1]) || moment(eventStart).isAfter([2500, 11, 31])) {
+                    throw new Meteor.Error("date-out-of-range");
+                }
                 if (this.userId) {
                     var events = JSON.parse(LZString.decompressFromUTF16(Meteor.users.findOne({
                         _id: this.userId
                     }).events) || "[]");
-                    var randomId = Meteor.uuid();
+                    var randomId = Meteor.uuid().slice(0, 13);
                     events.push({
                         _id: randomId,
                         title: "New Event",
                         start: eventStart,
-                        end: moment(eventStart).add(1, "day").toDate(),
-                        allDay: true
+                        end: allDay ? moment(eventStart).add(1, "day").toDate() : moment(eventStart).add(1, "hour").toDate(),
+                        allDay: allDay
                     });
                     if (events.length <= 100) {
                         Meteor.users.update({
@@ -48,47 +51,30 @@ Meteor.startup(() => {
                     throw new Meteor.Error("not-logged-in");
                 }
             },
-            addNonAllDayEvent(eventStart) {
-                check(eventStart, Date);
-                if (this.userId) {
-                    var events = JSON.parse(LZString.decompressFromUTF16(Meteor.users.findOne({
-                        _id: this.userId
-                    }).events) || "[]");
-                    var randomId = Meteor.uuid();
-                    events.push({
-                        _id: randomId,
-                        title: "New Event",
-                        start: eventStart,
-                        end: moment(eventStart).add(1, "hour").toDate(),
-                        allDay: false
-                    });
-                    if (events.length <= 100) {
-                        Meteor.users.update({
-                            _id: this.userId
-                        }, {
-                            $set: {
-                                events: LZString.compressToUTF16(JSON.stringify(events))
-                            }
-                        });
-                        return randomId;
-                    }
-                    else {
-                        throw new Meteor.Error("event-amount-exceeded");
-                    }
-                }
-                else {
-                    throw new Meteor.Error("not-logged-in");
-                }
-            },
-            dropToAllDayEvent(eventId, eventName, eventStart, eventEnd, repeat) {
+            dropEvent(eventId, eventName, eventStart, eventEnd, allDay, repeat) {
                 check(eventId, String);
                 check(eventName, String);
+                check(allDay, Boolean);
+                check(eventStart, Date);
+                check(eventEnd || new Date(), Date);
+                if (moment(eventStart).isBefore([1500, 0, 1]) || moment(eventStart).isAfter([2500, 11, 31])) {
+                    throw new Meteor.Error("date-out-of-range");
+                }
+                if (moment(eventEnd).isBefore([1500, 0, 1]) || moment(eventEnd).isAfter([2500, 11, 31])) {
+                    throw new Meteor.Error("date-out-of-range");
+                }
                 if (repeat) {
                     check(repeat.type, String);
                     check(repeat.skip, Match.Integer);
-                    check(repeat.skip, Match.Where((a) => a > 0));
+                    check(repeat.skip, Match.Where((a) => a >= 0));
                     check(repeat.start, Date);
                     check(repeat.end, Date);
+                    if (moment(repeat.start).isBefore([1500, 0, 1]) || moment(repeat.start).isAfter([2500, 11, 31])) {
+                        throw new Meteor.Error("date-out-of-range");
+                    }
+                    if (moment(repeat.end).isBefore([1500, 0, 1]) || moment(repeat.end).isAfter([2500, 11, 31])) {
+                        throw new Meteor.Error("date-out-of-range");
+                    }
                     if (repeat.type === 0) { //daily
                         repeat = {
                             type: repeat.type,
@@ -183,13 +169,27 @@ Meteor.startup(() => {
                         if (repeat.weekNumber.length < 1 || repeat.weekNumber.length > 5) {
                             throw new Meteor.Error("number-of-week-out-of-range");
                         }
+                        check(repeat.month, Match.Integer);
+                        if (repeat.month < 1 && repeat.month > 12) {
+                            throw new Meteor.Error("month-out-of-range");
+                        }
+                        repeat = {
+                            type: repeat.type,
+                            skip: repeat.skip,
+                            start: repeat.start,
+                            end: repeat.end,
+                            weekDays: repeat.weekDays,
+                            weekNumber: repeat.weekNumber,
+                            month: repeat.month
+                        };
+                    }
+                    else {
+                        throw new Meteor.Error("unknown-repeat-type");
                     }
                 }
                 if (eventName.length > 50) {
                     throw new Meteor.Error("event-name-length");
                 }
-                check(eventStart, Date);
-                check(eventEnd || new Date(), Date);
                 if (this.userId) {
                     var events = JSON.parse(LZString.decompressFromUTF16(Meteor.users.findOne({
                         _id: this.userId
@@ -200,42 +200,8 @@ Meteor.startup(() => {
                     if (eventIndex !== -1) {
                         events[eventIndex].title = eventName;
                         events[eventIndex].start = eventStart;
-                        events[eventIndex].end = eventEnd || moment(eventStart).add(1, "day").toDate();
-                        events[eventIndex].allDay = true;
-                        Meteor.users.update({
-                            _id: this.userId
-                        }, {
-                            $set: {
-                                events: LZString.compressToUTF16(JSON.stringify(events))
-                            }
-                        });
-                    }
-                    else {
-                        throw new Meteor.Error("event-not-found");
-                    }
-                }
-                else {
-                    throw new Meteor.Error("not-logged-in");
-                }
-            },
-            dropToNonAllDayEvent(eventId, eventName, eventStart, eventEnd) {
-                check(eventId, String);
-                check(eventName, String);
-                if (eventName.length > 50) {
-                    throw new Meteor.Error("event-name-length");
-                }
-                check(eventStart, Date);
-                check(eventEnd || new Date(), Date);
-                if (this.userId) {
-                    var events = JSON.parse(LZString.decompressFromUTF16(Meteor.users.findOne({
-                        _id: this.userId
-                    }).events) || "[]");
-                    var eventIndex = events.findIndex((a) => a._id === eventId);
-                    if (eventIndex !== -1) {
-                        events[eventIndex].title = eventName;
-                        events[eventIndex].start = eventStart;
-                        events[eventIndex].end = eventEnd || moment(eventStart).add(1, "hour").toDate();
-                        events[eventIndex].allDay = false;
+                        events[eventIndex].end = eventEnd || (allDay ? moment(eventStart).add(1, "day").toDate() : moment(eventStart).add(1, "hour").toDate());
+                        events[eventIndex].allDay = allDay;
                         Meteor.users.update({
                             _id: this.userId
                         }, {
