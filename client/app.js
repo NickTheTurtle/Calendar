@@ -264,7 +264,30 @@ Meteor.startup(() => {
                 end: "",
                 allDay: ""
             };
-            Meteor.call("dropEvent", Session.get("selectedEvent"), $("#eventName").val(), $("#allDay").prop("checked") ? (startDate.data("DateTimePicker").date().toDate ? moment(startDate.data("DateTimePicker").date()).toDate() : moment(event.start)) : (startDate.data("DateTimePicker").date().toDate ? startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes").toDate() : moment(event.start)), $("#allDay").prop("checked") ? (endDate.data("DateTimePicker").date().toDate ? endDate.data("DateTimePicker").date().add(1, "day").stripTime().toDate() : moment(event.end)) : (endDate.data("DateTimePicker").date().toDate ? startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes").toDate() : moment(event.end)), $("#allDay").prop("checked"), (error) => {
+            var repeat = false;
+            if ($("#repeat").prop("checked")) {
+                repeat = {
+                    type: $("#repeatType").val(),
+                    start: repeatStart.data("DateTimePicker").date,
+                    end: repeatEnd.data("DateTimePicker").date,
+                    skip: parseFloat($("#repeatSkip").val())
+                };
+                switch ($("#repeatType").val()) {
+                    case 0:
+                        break;
+                    case 1:
+                        break;
+                    case 2:
+                        break;
+                    case 3:
+                        break;
+                    case 4:
+                        break;
+                    case 5:
+                        break;
+                }
+            }
+            Meteor.call("dropEvent", Session.get("selectedEvent"), $("#eventName").val(), $("#allDay").prop("checked") ? (startDate.data("DateTimePicker").date().toDate ? moment(startDate.data("DateTimePicker").date()).toDate() : moment(event.start)) : (startDate.data("DateTimePicker").date().toDate ? startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes").toDate() : moment(event.start)), $("#allDay").prop("checked") ? (endDate.data("DateTimePicker").date().toDate ? endDate.data("DateTimePicker").date().add(1, "day").stripTime().toDate() : moment(event.end)) : (endDate.data("DateTimePicker").date().toDate ? startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes").toDate() : moment(event.end)), $("#allDay").prop("checked"), repeat, (error) => {
                 wait.modal("hide");
                 if (error) {
                     if (error.error === "event-name-length") {
@@ -330,7 +353,7 @@ Meteor.startup(() => {
                 $("#repeatWeekNumber").prop("disabled", false);
                 $("#repeatWeekDay").prop("disabled", false);
                 $("#repeatMonth").prop("disabled", false);
-                $("#repeatDay").prop("disabled", false);
+                $("#repeatDate").prop("disabled", false);
                 $("#repeatType").val(event.repeat ? event.repeat.type : 0);
                 repeatStart.data("DateTimePicker").date(event.repeat ? moment(event.repeat.start).utc().stripTime() : moment(event.start).utc().stripTime());
                 repeatEnd.data("DateTimePicker").date(event.repeat ? moment(event.repeat.end).utc().stripTime() : moment(event.start).utc().stripTime());
@@ -349,7 +372,7 @@ Meteor.startup(() => {
                 $("#repeatWeekNumber").prop("disabled", true);
                 $("#repeatWeekDay").prop("disabled", true);
                 $("#repeatMonth").prop("disabled", true);
-                $("#repeatDay").prop("disabled", true);
+                $("#repeatDate").prop("disabled", true);
                 $("#repeatType").val(0);
                 repeatStart.data("DateTimePicker").date(moment(event.start).utc().stripTime());
                 repeatEnd.data("DateTimePicker").date(moment(event.start).utc().stripTime());
@@ -423,7 +446,7 @@ Meteor.startup(() => {
             $("#repeatWeekNumber").prop("disabled", false);
             $("#repeatWeekDay").prop("disabled", false);
             $("#repeatMonth").prop("disabled", false);
-            $("#repeatDay").prop("disabled", false);
+            $("#repeatDate").prop("disabled", false);
             $("#repeatType").val(event.repeat.type);
             repeatStart.data("DateTimePicker").date(moment(event.repeat.start).utc().stripTime());
             repeatEnd.data("DateTimePicker").date(moment(event.repeat.end).utc().stripTime());
@@ -441,7 +464,7 @@ Meteor.startup(() => {
             $("#repeatWeekNumber").prop("disabled", true);
             $("#repeatWeekDay").prop("disabled", true);
             $("#repeatMonth").prop("disabled", true);
-            $("#repeatDay").prop("disabled", true);
+            $("#repeatDate").prop("disabled", true);
             $("#repeatType").val(0);
             repeatStart.data("DateTimePicker").date(moment(event.start).utc().stripTime());
             repeatEnd.data("DateTimePicker").date(moment(event.start).utc().stripTime());
