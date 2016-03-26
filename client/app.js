@@ -338,7 +338,7 @@ Meteor.startup(() => {
                 $("#repeatWeekNumber").val(1);
                 $("#repeatWeekDay").val(0);
                 $("#repeatMonth").val(1);
-                $("#repeatDay").val(1);
+                $("#repeatDate").val(1);
             }
             else {
                 Session.set("repeatType", 0);
@@ -357,7 +357,7 @@ Meteor.startup(() => {
                 $("#repeatWeekNumber").val(1);
                 $("#repeatWeekDay").val(0);
                 $("#repeatMonth").val(1);
-                $("#repeatDay").val(1);
+                $("#repeatDate").val(1);
             }
         }
     });
