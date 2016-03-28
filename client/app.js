@@ -470,6 +470,16 @@ Meteor.startup(() => {
     Template.list.helpers({
         events() {
             let events = [];
+            return Session.get("allEvents").map((a) => {
+                if (a.allDay) {
+                    a.start = moment(a.start).utc().format("LL");
+                    a.end = moment(a.end).utc().format("LL");
+                } else {
+                    a.start = moment(a.start).utc().format("LLL");
+                    a.end = moment(a.end).utc().format("LLL");
+                }
+                return a;
+            }).sort((a, b) => new Date(a.start) - new Date(b.start) || a.title.toLowerCase().charCodeAt() - b.title.toLowerCase().charCodeAt());
             CalEvents.find().fetch().forEach((a) => {
                 if (a.repeat) {
                     if (a.repeat.type === 0) {
