@@ -1,3 +1,7 @@
-body {
+.container {
     margin-top: 70px;
+}
+.modal-body {
+    max-height: 400px;
+    overflow-y: scroll;
 }

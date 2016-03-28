@@ -4,6 +4,7 @@
 </head>
 
 <template name="main">
+  {{>meteorStatus overlay=true}}
   <div class="container">
     <nav class="navbar navbar-inverse navbar-fixed-top">
       <div class="container-fluid">
@@ -40,7 +41,7 @@
           <div class="form-group">
             <div class="input-group">
               <span class="input-group-addon">Name</span>
-              <input class="form-control" id="eventName" />
+              <input class="form-control" id="eventName" maxlength="50" />
             </div>
           </div>
           <div class="form-group">
@@ -112,14 +113,13 @@
           </div>
           <div class="form-group">
             <div class="input-group">
-              <span class="input-group-addon">Skip Every {{repeatSkip}}</span>
+              <span class="input-group-addon">Skip {{repeatSkip}}</span>
               <input type="number" class="form-control" id="repeatSkip" min="0" max="2147483647" />
             </div>
           </div>
-          {{#if repeatWeekNumber}}
-          <div class="form-group">
+          <div class="form-group" style="display:{{repeatWeekNumber}}">
             <div class="input-group">
-              <span class="input-group-addon">Number of week</span>
+              <span class="input-group-addon">Week Number of Month</span>
               <select class="form-control" id="repeatWeekNumber">
                 <option value="1">First</option>
                 <option value="2">Second</option>
@@ -129,10 +129,9 @@
               </select>
             </div>
           </div>
-          {{/if}} {{#if repeatWeekDay}}
-          <div class="form-group">
+          <div class="form-group" style="display:{{repeatWeekDay}}">
             <div class="input-group">
-              <span class="input-group-addon">Days of week</span>
+              <span class="input-group-addon">Days of the Week</span>
               <select class="form-control" id="repeatWeekDay" multiple>
                 <option value="0">Sunday</option>
                 <option value="1">Monday</option>
@@ -144,8 +143,7 @@
               </select>
             </div>
           </div>
-          {{/if}} {{#if repeatMonth}}
-          <div class="form-group">
+          <div class="form-group" style="display:{{repeatMonth}}">
             <div class="input-group">
               <span class="input-group-addon">Month</span>
               <select class="form-control" id="repeatMonth">
@@ -164,14 +162,12 @@
               </select>
             </div>
           </div>
-          {{/if}} {{#if repeatDate}}
-          <div class="form-group">
+          <div class="form-group" style="display:{{repeatDate}}">
             <div class="input-group">
-              <span class="input-group-addon">Date of month</span>
+              <span class="input-group-addon">Date of Month</span>
               <input type="number" class="form-control" id="repeatDate" min="1" max="31" />
             </div>
           </div>
-          {{/if}}
           <div class="form-group">
             <label>
               <input type="checkbox" id="repeat" /> Repeat

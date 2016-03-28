@@ -23,6 +23,6 @@ check
 mizzao:bootboxjs
 tsega:bootstrap3-datetimepicker
 momentjs:moment
-nunohvidal:lz-string
 iron:router
 ian:accounts-ui-bootstrap-3
+255kb:meteor-status
