@@ -7,10 +7,10 @@ Meteor.startup(() => {
     let repeatStart;
     let repeatEnd;
     let calendar;
-    let loadEvents = () => {
+    let loadEvents = (newEvents) => {
         let events = [];
-        if (Meteor.user() && CalEvents.find().count() !== 0) {
-            CalEvents.find().forEach((a) => {
+        if (newEvents !== 0) {
+            newEvents.forEach((a) => {
                 if (a.repeat) {
                     if (a.repeat.type === 0) {
                         for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "days")) {
@@ -28,8 +28,8 @@ Meteor.startup(() => {
                                 events.push({
                                     _id: a._id,
                                     title: a.title + " (Repeat)",
-                                    start: $.fullCalendar.moment(i).time(moment(a.start)).toISOString(),
-                                    end: $.fullCalendar.moment(i).time(moment(a.end)).toISOString(),
+                                    start: moment(i).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
+                                    end: moment(i).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
                                     allDay: false,
                                     repeat: a.repeat.type
                                 });
@@ -55,8 +55,8 @@ Meteor.startup(() => {
                                         events.push({
                                             _id: a._id,
                                             title: a.title + " (Repeat)",
-                                            start: $.fullCalendar.moment(i).day(t).time(moment(a.start)).toISOString(),
-                                            end: $.fullCalendar.moment(i).day(t).time(moment(a.end)).toISOString(),
+                                            start: moment(i).day(t).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
+                                            end: moment(i).day(t).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
                                             allDay: false,
                                             repeat: a.repeat.type
                                         });
@@ -83,8 +83,8 @@ Meteor.startup(() => {
                                     events.push({
                                         _id: a._id,
                                         title: a.title + " (Repeat)",
-                                        start: $.fullCalendar.moment(i).date(t).time(moment(a.start)).toISOString(),
-                                        end: $.fullCalendar.moment(i).date(t).time(moment(a.end)).toISOString(),
+                                        start: moment(i).date(t).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
+                                        end: moment(i).date(t).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
                                         allDay: false,
                                         repeat: a.repeat.type
                                     });
@@ -123,8 +123,8 @@ Meteor.startup(() => {
                                         events.push({
                                             _id: a._id,
                                             title: a.title + " (Repeat)",
-                                            start: $.fullCalendar.moment(i).date(t).time(moment(a.start)).toISOString(),
-                                            end: $.fullCalendar.moment(i).date(t).time(moment(a.end)).toISOString(),
+                                            start: moment(i).date(t).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
+                                            end: moment(i).date(t).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
                                             allDay: false,
                                             repeat: a.repeat.type
                                         });
@@ -151,11 +151,52 @@ Meteor.startup(() => {
                                     events.push({
                                         _id: a._id,
                                         title: a.title + " (Repeat)",
-                                        start: $.fullCalendar.moment(t).time(moment(a.start)).toISOString(),
-                                        end: $.fullCalendar.moment(t).time(moment(a.end)).toISOString(),
+                                        start: moment(t).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
+                                        end: moment(t).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
                                         allDay: false,
                                         repeat: a.repeat.type
                                     });
+                                }
+                            }
+                        }
+                    }
+                    else if (a.repeat.type === 5) {
+                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "years")) {
+                            let weeksInMonth = [
+                                [],
+                                [],
+                                [],
+                                [],
+                                [],
+                                [],
+                                []
+                            ];
+                            for (let j = 1; j <= moment(i).month(a.repeat.month - 1).daysInMonth(); j++) {
+                                weeksInMonth[moment(i).month(a.repeat.month - 1).date(j).day()].push(j);
+                            }
+                            for (let j of a.repeat.weekDays) {
+                                let t = a.repeat.weekNumber === 5 ? weeksInMonth[j][weeksInMonth[j].length - 1] : weeksInMonth[j][a.repeat.weekNumber - 1];
+                                if ((moment(i).month(a.repeat.month - 1).date(t).isBefore(moment(a.repeat.end)) || moment(i).month(a.repeat.month - 1).date(t).isSame(moment(a.repeat.end)))) {
+                                    if (a.allDay) {
+                                        events.push({
+                                            _id: a._id,
+                                            title: a.title + " (Repeat)",
+                                            start: moment(i).month(a.repeat.month - 1).date(t).toISOString(),
+                                            end: moment(i).month(a.repeat.month - 1).date(t).add(moment(a.end).diff(moment(a.start))).toISOString(),
+                                            allDay: true,
+                                            repeat: a.repeat.type
+                                        });
+                                    }
+                                    else {
+                                        events.push({
+                                            _id: a._id,
+                                            title: a.title + " (Repeat)",
+                                            start: moment(i).month(a.repeat.month - 1).date(t).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
+                                            end: moment(i).month(a.repeat.month - 1).date(t).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
+                                            allDay: false,
+                                            repeat: a.repeat.type
+                                        });
+                                    }
                                 }
                             }
                         }
@@ -166,7 +207,7 @@ Meteor.startup(() => {
                 }
             });
         }
-        Session.set("allEvents", events);
+        return events;
     };
     let showModal = (modal, state) => {
         $("#" + modal).modal(state);
@@ -249,17 +290,23 @@ Meteor.startup(() => {
         forceUsernameLowercase: true
     });
     Accounts.onLogin(() => {
-        loadEvents();
+        Session.set("allEvents", loadEvents(CalEvents.find().fetch()));
     });
-    CalEvents.find().observeChanges({
-        added() {
-                loadEvents();
+    CalEvents.find().observe({
+        added(doc) {
+                Session.set("allEvents", Session.get("allEvents").concat(loadEvents([doc])));
             },
-            changed() {
-                loadEvents();
+            changed(doc) {
+                let events = Session.get("allEvents");
+                events = events.filter((a) => {
+                    return a._id !== doc._id;
+                });
+                Session.set("allEvents", events.concat(loadEvents([doc])));
             },
-            removed() {
-                loadEvents();
+            removed(doc) {
+                Session.set("allEvents", Session.get("allEvents").filter((a) => {
+                    return a._id !== doc._id;
+                }));
             }
     });
     Template.main.onRendered(() => {
@@ -391,7 +438,9 @@ Meteor.startup(() => {
                         message: "Please wait while the event is being resized.",
                         title: "Resizing Event"
                     });
-                    Meteor.call("dropEvent", event._id, event.title, moment(event.start).toISOString(), event.end ? moment(event.end).toISOString() : null, !event.start.hasTime(), (error, result) => {
+                    Meteor.call("dropEvent", event._id, event.title, moment(event.start).toISOString(), event.end ? moment(event.end).toISOString() : null, !event.start.hasTime(), CalEvents.findOne({
+                        _id: event._id
+                    }).repeat, (error, result) => {
                         wait.modal("hide");
                         if (error) {
                             console.log(error.error);
@@ -418,7 +467,7 @@ Meteor.startup(() => {
                 },
                 events(start, end, timezone, callback) {
                     if (Meteor.user() && CalEvents.find().count() !== 0) {
-                        callback(Session.get("allEvents"));
+                        callback(Session.get("allEvents").filter((a) => (moment(a.start).isBefore(end) && moment(a.start).isAfter(start) || moment(a.start).isSame(start) || moment(a.start).isSame(end)) || (moment(a.end).isBefore(end) && moment(a.end).isAfter(start) || moment(a.end).isSame(start) || moment(a.end).isSame(end))));
                     }
                     else {
                         callback([]);
@@ -468,192 +517,39 @@ Meteor.startup(() => {
             }
     });
     Template.list.helpers({
-        events() {
-            let events = [];
-            return Session.get("allEvents").map((a) => {
-                if (a.allDay) {
-                    a.start = moment(a.start).utc().format("LL");
-                    a.end = moment(a.end).utc().format("LL");
-                } else {
-                    a.start = moment(a.start).utc().format("LLL");
-                    a.end = moment(a.end).utc().format("LLL");
+        disabledPrevious() {
+                return Router.current().params.p === "1" ? "disabled" : "";
+            },
+            pages() {
+                let pages = [];
+                for (let i = 1; i <= Math.ceil(Session.get("allEvents").length / 15); i++) {
+                    pages.push({
+                        num: i
+                    });
                 }
-                return a;
-            }).sort((a, b) => new Date(a.start) - new Date(b.start) || a.title.toLowerCase().charCodeAt() - b.title.toLowerCase().charCodeAt());
-            CalEvents.find().fetch().forEach((a) => {
-                if (a.repeat) {
-                    if (a.repeat.type === 0) {
-                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "days")) {
-                            if (a.allDay) {
-                                events.push({
-                                    _id: a._id,
-                                    title: a.title + " (Repeat)",
-                                    start: moment(i).utc().format("LL"),
-                                    end: moment(i).add(moment(a.end).diff(moment(a.start))).subtract(1, "day").utc().format("LL"),
-                                    allDay: true,
-                                    repeat: a.repeat.type
-                                });
-                            }
-                            else {
-                                events.push({
-                                    _id: a._id,
-                                    title: a.title + " (Repeat)",
-                                    start: $.fullCalendar.moment(i).time(moment(a.start)).utc().format("LLL"),
-                                    end: $.fullCalendar.moment(i).time(moment(a.end)).utc().format("LLL"),
-                                    allDay: false,
-                                    repeat: a.repeat.type
-                                });
-                            }
-                        }
-                    }
-                    else if (a.repeat.type === 1) {
-                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "weeks")) {
-                            for (let j of a.repeat.weekDays) {
-                                let t = moment(i).day() <= j ? j : j + 7;
-                                if ((moment(i).day(t).isBefore(moment(a.repeat.end)) || moment(i).day(t).isSame(moment(a.repeat.end)))) {
-                                    if (a.allDay) {
-                                        events.push({
-                                            _id: a._id,
-                                            title: a.title + " (Repeat)",
-                                            start: moment(i).day(t).utc().format("LL"),
-                                            end: moment(i).day(t).add(moment(a.end).diff(moment(a.start))).subtract(1, "day").utc().format("LL"),
-                                            allDay: true,
-                                            repeat: a.repeat.type
-                                        });
-                                    }
-                                    else {
-                                        events.push({
-                                            _id: a._id,
-                                            title: a.title + " (Repeat)",
-                                            start: $.fullCalendar.moment(i).day(t).time(moment(a.start)).utc().format("LLL"),
-                                            end: $.fullCalendar.moment(i).day(t).time(moment(a.end)).utc().format("LLL"),
-                                            allDay: false,
-                                            repeat: a.repeat.type
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else if (a.repeat.type === 2) {
-                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "months")) {
-                            let t = moment(i).date() <= a.repeat.date ? (a.repeat.date <= moment(i).daysInMonth() ? a.repeat.date : moment(i).daysInMonth()) : a.repeat.date + moment(i).daysInMonth();
-                            if ((moment(i).date(t).isBefore(moment(a.repeat.end)) || moment(i).date(t).isSame(moment(a.repeat.end)))) {
-                                if (a.allDay) {
-                                    events.push({
-                                        _id: a._id,
-                                        title: a.title + " (Repeat)",
-                                        start: moment(i).date(t).utc().format("LL"),
-                                        end: moment(i).date(t).add(moment(a.end).diff(moment(a.start))).subtract(1, "day").utc().format("LL"),
-                                        allDay: true,
-                                        repeat: a.repeat.type
-                                    });
-                                }
-                                else {
-                                    events.push({
-                                        _id: a._id,
-                                        title: a.title + " (Repeat)",
-                                        start: $.fullCalendar.moment(i).date(t).time(moment(a.start)).utc().format("LLL"),
-                                        end: $.fullCalendar.moment(i).date(t).time(moment(a.end)).utc().format("LLL"),
-                                        allDay: false,
-                                        repeat: a.repeat.type
-                                    });
-                                }
-                            }
-                        }
-                    }
-                    else if (a.repeat.type === 3) {
-                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "months")) {
-                            let weeksInMonth = [
-                                [],
-                                [],
-                                [],
-                                [],
-                                [],
-                                [],
-                                []
-                            ];
-                            for (let j = 1; j <= moment(i).daysInMonth(); j++) {
-                                weeksInMonth[moment(i).date(j).day()].push(j);
-                            }
-                            for (let j of a.repeat.weekDays) {
-                                let t = a.repeat.weekNumber === 5 ? weeksInMonth[j][weeksInMonth[j].length - 1] : weeksInMonth[j][a.repeat.weekNumber - 1];
-                                if ((moment(i).date(t).isBefore(moment(a.repeat.end)) || moment(i).date(t).isSame(moment(a.repeat.end)))) {
-                                    if (a.allDay) {
-                                        events.push({
-                                            _id: a._id,
-                                            title: a.title + " (Repeat)",
-                                            start: moment(i).date(t).utc().format("LL"),
-                                            end: moment(i).date(t).add(moment(a.end).diff(moment(a.start))).subtract(1, "day").utc().format("LL"),
-                                            allDay: true,
-                                            repeat: a.repeat.type
-                                        });
-                                    }
-                                    else {
-                                        events.push({
-                                            _id: a._id,
-                                            title: a.title + " (Repeat)",
-                                            start: $.fullCalendar.moment(i).date(t).time(moment(a.start)).utc().format("LLL"),
-                                            end: $.fullCalendar.moment(i).date(t).time(moment(a.end)).utc().format("LLL"),
-                                            allDay: false,
-                                            repeat: a.repeat.type
-                                        });
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else if (a.repeat.type === 4) {
-                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "years")) {
-                            let t = moment(i).month(a.repeat.month - 1).date(a.repeat.date <= moment(i).month(a.repeat.month - 1).daysInMonth() ? a.repeat.date : moment(i).month(a.repeat.month - 1).daysInMonth());
-                            if (moment(t).isBefore(moment(a.repeat.end)) || moment(t).isSame(moment(a.repeat.end))) {
-                                if (a.allDay) {
-                                    events.push({
-                                        _id: a._id,
-                                        title: a.title + " (Repeat)",
-                                        start: moment(t).utc().format("LL"),
-                                        end: moment(t).add(moment(a.end).diff(moment(a.start))).subtract(1, "day").utc().format("LL"),
-                                        allDay: true,
-                                        repeat: a.repeat.type
-                                    });
-                                }
-                                else {
-                                    events.push({
-                                        _id: a._id,
-                                        title: a.title + " (Repeat)",
-                                        start: $.fullCalendar.moment(t).time(moment(a.start)).utc().format("LLL"),
-                                        end: $.fullCalendar.moment(t).time(moment(a.end)).utc().format("LLL"),
-                                        allDay: false,
-                                        repeat: a.repeat.type
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
-                else {
+                return pages;
+            },
+            active(num) {
+                return num === parseInt(Router.current().params.p, 10) ? "active" : "";
+            },
+            disabledNext() {
+                return parseInt(Router.current().params.p, 10) * 15 >= Session.get("allEvents").length ? "disabled" : "";
+            },
+            events() {
+                return Session.get("allEvents").sort((a, b) => new Date(a.start) - new Date(b.start) || a.title.toLowerCase().charCodeAt() - b.title.toLowerCase().charCodeAt()).slice(parseInt(Router.current().params.p, 10) * 15 - 15, parseInt(Router.current().params.p, 10) * 15).map((a) => {
+                    a.id = a._id;
+                    delete a._id;
                     if (a.allDay) {
-                        events.push({
-                            _id: a._id,
-                            title: a.title,
-                            start: moment(a.start).utc().format("LL"),
-                            end: moment(a.end).subtract(1, "day").utc().format("LL"),
-                            allDay: true
-                        });
+                        a.start = moment(a.start).utc().format("LL");
+                        a.end = moment(a.end).subtract(1, "day").utc().format("LL");
                     }
                     else {
-                        events.push({
-                            _id: a._id,
-                            title: a.title,
-                            start: moment(a.start).utc().format("LLL"),
-                            end: moment(a.end).utc().format("LLL"),
-                            allDay: false
-                        });
+                        a.start = moment(a.start).utc().format("LLL");
+                        a.end = moment(a.end).utc().format("LLL");
                     }
-                }
-            });
-            return events.sort((a, b) => new Date(a.start) - new Date(b.start) || a.title.toLowerCase().charCodeAt() - b.title.toLowerCase().charCodeAt());
-        }
+                    return a;
+                });
+            }
     });
     Template.main.events({
         "click #deleteEvent" () {
@@ -840,10 +736,22 @@ Meteor.startup(() => {
         }
     });
     Template.list.events({
+        "click #previousLink" (event) {
+            event.preventDefault();
+            if (Router.current().params.p !== "1") {
+                Router.go("/list/" + (parseInt(Router.current().params.p, 10) - 1));
+            }
+        },
+        "click #nextLink" (event) {
+            event.preventDefault();
+            if (parseInt(Router.current().params.p, 10) * 15 < Session.get("allEvents").length) {
+                Router.go("/list/" + (parseInt(Router.current().params.p, 10) + 1));
+            }
+        },
         "click tr" () {
-            let event = CalEvents.find().fetch().find((a) => a._id === this._id);
+            let event = CalEvents.find().fetch().find((a) => a._id === this.id);
             if (event) {
-                Session.set("selectedEvent", this._id);
+                Session.set("selectedEvent", this.id);
                 Session.set("repeatType", this.repeat ? this.repeat.type : 0);
                 showModal("editEvent", "show");
             }
@@ -858,7 +766,7 @@ Meteor.startup(() => {
     Router.route("/calendar", function() {
         this.render("calendar");
     });
-    Router.route("/list", function() {
+    Router.route("/list/:p", function() {
         this.render("list");
     });
 });
