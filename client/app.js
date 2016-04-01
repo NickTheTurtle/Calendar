@@ -1,4 +1,4 @@
-/* global moment bootbox LZString Deps Router CalEvents */
+/* global moment bootbox $ Deps Router CalEvents */
 Meteor.startup(() => {
     let startDate;
     let startTime;

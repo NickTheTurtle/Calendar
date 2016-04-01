@@ -1,0 +1,7 @@
+{
+    "name": "Calendric",
+    "version": "1.2.0",
+    "engines": {
+        "node": "0.10.41"
+    }
+}
