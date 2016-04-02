@@ -11,89 +11,90 @@ Meteor.startup(() => {
         let events = [];
         if (newEvents !== 0) {
             newEvents.forEach((a) => {
-                if (a.repeat) {
-                    if (a.repeat.type === 0) {
-                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "days")) {
-                            if (a.allDay) {
+                if (a.r) {
+                    var currentLength = events.length;
+                    if (a.r.t === 0) {
+                        for (let i = moment(a.r.s); i.isBefore(moment(a.r.e)) || i.isSame(moment(a.r.e)); i.add(a.r.k + 1, "days")) {
+                            if (a.a) {
                                 events.push({
                                     _id: a._id,
-                                    title: a.title + " (Repeat)",
+                                    title: a.t + " (Repeat)",
                                     start: moment(i).toISOString(),
-                                    end: moment(i).add(moment(a.end).diff(moment(a.start))).toISOString(),
+                                    end: moment(i).add(moment(a.e).diff(moment(a.s))).toISOString(),
                                     allDay: true,
-                                    repeat: a.repeat.type
+                                    repeat: a.r.t
                                 });
                             }
                             else {
                                 events.push({
                                     _id: a._id,
-                                    title: a.title + " (Repeat)",
-                                    start: moment(i).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
-                                    end: moment(i).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
+                                    title: a.t + " (Repeat)",
+                                    start: moment(i).utc().hours(moment(a.s).utc().hours()).minutes(moment(a.s).utc().minutes()).toISOString(),
+                                    end: moment(i).utc().hours(moment(a.e).utc().hours()).minutes(moment(a.e).utc().minutes()).toISOString(),
                                     allDay: false,
-                                    repeat: a.repeat.type
+                                    repeat: a.r.t
                                 });
                             }
                         }
                     }
-                    else if (a.repeat.type === 1) {
-                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "weeks")) {
-                            for (let j of a.repeat.weekDays) {
+                    else if (a.r.t === 1) {
+                        for (let i = moment(a.r.s); i.isBefore(moment(a.r.e)) || i.isSame(moment(a.r.e)); i.add(a.r.k + 1, "weeks")) {
+                            for (let j of a.r.w) {
                                 let t = moment(i).day() <= j ? j : j + 7;
-                                if ((moment(i).day(t).isBefore(moment(a.repeat.end)) || moment(i).day(t).isSame(moment(a.repeat.end)))) {
-                                    if (a.allDay) {
+                                if ((moment(i).day(t).isBefore(moment(a.r.e)) || moment(i).day(t).isSame(moment(a.r.e)))) {
+                                    if (a.a) {
                                         events.push({
                                             _id: a._id,
-                                            title: a.title + " (Repeat)",
+                                            title: a.t + " (Repeat)",
                                             start: moment(i).day(t).toISOString(),
-                                            end: moment(i).day(t).add(moment(a.end).diff(moment(a.start))).toISOString(),
+                                            end: moment(i).day(t).add(moment(a.e).diff(moment(a.s))).toISOString(),
                                             allDay: true,
-                                            repeat: a.repeat.type
+                                            repeat: a.r.t
                                         });
                                     }
                                     else {
                                         events.push({
                                             _id: a._id,
-                                            title: a.title + " (Repeat)",
-                                            start: moment(i).day(t).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
-                                            end: moment(i).day(t).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
+                                            title: a.t + " (Repeat)",
+                                            start: moment(i).day(t).utc().hours(moment(a.s).utc().hours()).minutes(moment(a.s).utc().minutes()).toISOString(),
+                                            end: moment(i).day(t).utc().hours(moment(a.e).utc().hours()).minutes(moment(a.e).utc().minutes()).toISOString(),
                                             allDay: false,
-                                            repeat: a.repeat.type
+                                            repeat: a.r.t
                                         });
                                     }
                                 }
                             }
                         }
                     }
-                    else if (a.repeat.type === 2) {
-                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "months")) {
-                            let t = moment(i).date() <= a.repeat.date ? (a.repeat.date <= moment(i).daysInMonth() ? a.repeat.date : moment(i).daysInMonth()) : a.repeat.date + moment(i).daysInMonth();
-                            if ((moment(i).date(t).isBefore(moment(a.repeat.end)) || moment(i).date(t).isSame(moment(a.repeat.end)))) {
-                                if (a.allDay) {
+                    else if (a.r.t === 2) {
+                        for (let i = moment(a.r.s); i.isBefore(moment(a.r.e)) || i.isSame(moment(a.r.e)); i.add(a.r.k + 1, "months")) {
+                            let t = moment(i).date() <= a.r.d ? (a.r.d <= moment(i).daysInMonth() ? a.r.d : moment(i).daysInMonth()) : a.r.d + moment(i).daysInMonth();
+                            if ((moment(i).date(t).isBefore(moment(a.r.e)) || moment(i).date(t).isSame(moment(a.r.e)))) {
+                                if (a.a) {
                                     events.push({
                                         _id: a._id,
-                                        title: a.title + " (Repeat)",
+                                        title: a.t + " (Repeat)",
                                         start: moment(i).date(t).toISOString(),
-                                        end: moment(i).date(t).add(moment(a.end).diff(moment(a.start))).toISOString(),
+                                        end: moment(i).date(t).add(moment(a.e).diff(moment(a.s))).toISOString(),
                                         allDay: true,
-                                        repeat: a.repeat.type
+                                        repeat: a.r.t
                                     });
                                 }
                                 else {
                                     events.push({
                                         _id: a._id,
-                                        title: a.title + " (Repeat)",
-                                        start: moment(i).date(t).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
-                                        end: moment(i).date(t).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
+                                        title: a.t + " (Repeat)",
+                                        start: moment(i).date(t).utc().hours(moment(a.s).utc().hours()).minutes(moment(a.s).utc().minutes()).toISOString(),
+                                        end: moment(i).date(t).utc().hours(moment(a.e).utc().hours()).minutes(moment(a.e).utc().minutes()).toISOString(),
                                         allDay: false,
-                                        repeat: a.repeat.type
+                                        repeat: a.r.t
                                     });
                                 }
                             }
                         }
                     }
-                    else if (a.repeat.type === 3) {
-                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "months")) {
+                    else if (a.r.t === 3) {
+                        for (let i = moment(a.r.s); i.isBefore(moment(a.r.e)) || i.isSame(moment(a.r.e)); i.add(a.r.k + 1, "months")) {
                             let weeksInMonth = [
                                 [],
                                 [],
@@ -106,62 +107,62 @@ Meteor.startup(() => {
                             for (let j = 1; j <= moment(i).daysInMonth(); j++) {
                                 weeksInMonth[moment(i).date(j).day()].push(j);
                             }
-                            for (let j of a.repeat.weekDays) {
-                                let t = a.repeat.weekNumber === 5 ? weeksInMonth[j][weeksInMonth[j].length - 1] : weeksInMonth[j][a.repeat.weekNumber - 1];
-                                if ((moment(i).date(t).isBefore(moment(a.repeat.end)) || moment(i).date(t).isSame(moment(a.repeat.end)))) {
-                                    if (a.allDay) {
+                            for (let j of a.r.w) {
+                                let t = a.r.n === 5 ? weeksInMonth[j][weeksInMonth[j].length - 1] : weeksInMonth[j][a.r.n - 1];
+                                if ((moment(i).date(t).isBefore(moment(a.r.e)) || moment(i).date(t).isSame(moment(a.r.e)))) {
+                                    if (a.a) {
                                         events.push({
                                             _id: a._id,
-                                            title: a.title + " (Repeat)",
+                                            title: a.t + " (Repeat)",
                                             start: moment(i).date(t).toISOString(),
-                                            end: moment(i).date(t).add(moment(a.end).diff(moment(a.start))).toISOString(),
+                                            end: moment(i).date(t).add(moment(a.e).diff(moment(a.s))).toISOString(),
                                             allDay: true,
-                                            repeat: a.repeat.type
+                                            repeat: a.r.t
                                         });
                                     }
                                     else {
                                         events.push({
                                             _id: a._id,
-                                            title: a.title + " (Repeat)",
-                                            start: moment(i).date(t).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
-                                            end: moment(i).date(t).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
+                                            title: a.t + " (Repeat)",
+                                            start: moment(i).date(t).utc().hours(moment(a.s).utc().hours()).minutes(moment(a.s).utc().minutes()).toISOString(),
+                                            end: moment(i).date(t).utc().hours(moment(a.e).utc().hours()).minutes(moment(a.e).utc().minutes()).toISOString(),
                                             allDay: false,
-                                            repeat: a.repeat.type
+                                            repeat: a.r.t
                                         });
                                     }
                                 }
                             }
                         }
                     }
-                    else if (a.repeat.type === 4) {
-                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "years")) {
-                            let t = moment(i).month(a.repeat.month - 1).date(a.repeat.date <= moment(i).month(a.repeat.month - 1).daysInMonth() ? a.repeat.date : moment(i).month(a.repeat.month - 1).daysInMonth());
-                            if (moment(t).isBefore(moment(a.repeat.end)) || moment(t).isSame(moment(a.repeat.end))) {
-                                if (a.allDay) {
+                    else if (a.r.t === 4) {
+                        for (let i = moment(a.r.s); i.isBefore(moment(a.r.e)) || i.isSame(moment(a.r.e)); i.add(a.r.k + 1, "years")) {
+                            let t = moment(i).month(a.r.m - 1).date(a.r.d <= moment(i).month(a.r.m - 1).daysInMonth() ? a.r.d : moment(i).month(a.r.m - 1).daysInMonth());
+                            if (moment(t).isBefore(moment(a.r.e)) || moment(t).isSame(moment(a.r.e))) {
+                                if (a.a) {
                                     events.push({
                                         _id: a._id,
-                                        title: a.title + " (Repeat)",
+                                        title: a.t + " (Repeat)",
                                         start: moment(t).toISOString(),
-                                        end: moment(t).add(moment(a.end).diff(moment(a.start))).subtract(1, "day").toISOString(),
+                                        end: moment(t).add(moment(a.e).diff(moment(a.s))).subtract(1, "day").toISOString(),
                                         allDay: true,
-                                        repeat: a.repeat.type
+                                        repeat: a.r.t
                                     });
                                 }
                                 else {
                                     events.push({
                                         _id: a._id,
-                                        title: a.title + " (Repeat)",
-                                        start: moment(t).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
-                                        end: moment(t).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
+                                        title: a.t + " (Repeat)",
+                                        start: moment(t).utc().hours(moment(a.s).utc().hours()).minutes(moment(a.s).utc().minutes()).toISOString(),
+                                        end: moment(t).utc().hours(moment(a.e).utc().hours()).minutes(moment(a.e).utc().minutes()).toISOString(),
                                         allDay: false,
-                                        repeat: a.repeat.type
+                                        repeat: a.r.t
                                     });
                                 }
                             }
                         }
                     }
-                    else if (a.repeat.type === 5) {
-                        for (let i = moment(a.repeat.start); i.isBefore(moment(a.repeat.end)) || i.isSame(moment(a.repeat.end)); i.add(a.repeat.skip + 1, "years")) {
+                    else if (a.r.t === 5) {
+                        for (let i = moment(a.r.s); i.isBefore(moment(a.r.e)) || i.isSame(moment(a.r.e)); i.add(a.r.k + 1, "years")) {
                             let weeksInMonth = [
                                 [],
                                 [],
@@ -171,39 +172,48 @@ Meteor.startup(() => {
                                 [],
                                 []
                             ];
-                            for (let j = 1; j <= moment(i).month(a.repeat.month - 1).daysInMonth(); j++) {
-                                weeksInMonth[moment(i).month(a.repeat.month - 1).date(j).day()].push(j);
+                            for (let j = 1; j <= moment(i).month(a.r.m - 1).daysInMonth(); j++) {
+                                weeksInMonth[moment(i).month(a.r.m - 1).date(j).day()].push(j);
                             }
-                            for (let j of a.repeat.weekDays) {
-                                let t = a.repeat.weekNumber === 5 ? weeksInMonth[j][weeksInMonth[j].length - 1] : weeksInMonth[j][a.repeat.weekNumber - 1];
-                                if ((moment(i).month(a.repeat.month - 1).date(t).isBefore(moment(a.repeat.end)) || moment(i).month(a.repeat.month - 1).date(t).isSame(moment(a.repeat.end)))) {
-                                    if (a.allDay) {
+                            for (let j of a.r.w) {
+                                let t = a.r.n === 5 ? weeksInMonth[j][weeksInMonth[j].length - 1] : weeksInMonth[j][a.r.n - 1];
+                                if ((moment(i).month(a.r.m - 1).date(t).isBefore(moment(a.r.e)) || moment(i).month(a.r.m - 1).date(t).isSame(moment(a.r.e)))) {
+                                    if (a.a) {
                                         events.push({
                                             _id: a._id,
-                                            title: a.title + " (Repeat)",
-                                            start: moment(i).month(a.repeat.month - 1).date(t).toISOString(),
-                                            end: moment(i).month(a.repeat.month - 1).date(t).add(moment(a.end).diff(moment(a.start))).toISOString(),
+                                            title: a.t + " (Repeat)",
+                                            start: moment(i).month(a.r.m - 1).date(t).toISOString(),
+                                            end: moment(i).month(a.r.m - 1).date(t).add(moment(a.e).diff(moment(a.s))).toISOString(),
                                             allDay: true,
-                                            repeat: a.repeat.type
+                                            repeat: a.r.t
                                         });
                                     }
                                     else {
                                         events.push({
                                             _id: a._id,
-                                            title: a.title + " (Repeat)",
-                                            start: moment(i).month(a.repeat.month - 1).date(t).utc().hours(moment(a.start).utc().hours()).minutes(moment(a.start).utc().minutes()).toISOString(),
-                                            end: moment(i).month(a.repeat.month - 1).date(t).utc().hours(moment(a.end).utc().hours()).minutes(moment(a.end).utc().minutes()).toISOString(),
+                                            title: a.t + " (Repeat)",
+                                            start: moment(i).month(a.r.m - 1).date(t).utc().hours(moment(a.s).utc().hours()).minutes(moment(a.s).utc().minutes()).toISOString(),
+                                            end: moment(i).month(a.r.m - 1).date(t).utc().hours(moment(a.e).utc().hours()).minutes(moment(a.e).utc().minutes()).toISOString(),
                                             allDay: false,
-                                            repeat: a.repeat.type
+                                            repeat: a.r.t
                                         });
                                     }
                                 }
                             }
                         }
                     }
+                    if (events.length === currentLength) {
+                        Meteor.call("deleteEvent", a._id, function() {});
+                    }
                 }
                 else {
-                    events.push(a);
+                    events.push({
+                        _id: a._id,
+                        title: a.t,
+                        start: a.s,
+                        end: a.e,
+                        allDay: a.a
+                    });
                 }
             });
         }
@@ -212,22 +222,22 @@ Meteor.startup(() => {
     let showModal = (modal, state) => {
         $("#" + modal).modal(state);
         let event = CalEvents.find().fetch().find((a) => Session.equals("selectedEvent", a._id)) || {
-            title: "",
-            start: "",
-            end: "",
-            allDay: "",
-            repeat: false
+            t: "",
+            s: "",
+            e: "",
+            a: "",
+            r: false
         };
-        $("#eventName").val(event.title);
+        $("#eventName").val(event.t);
         $("#repeatType").val(0);
-        if (event.allDay) {
+        if (event.a) {
             $("#startDate").prop("disabled", false);
             $("#endDate").prop("disabled", false);
             $("#startTime").prop("disabled", true);
             $("#endTime").prop("disabled", true);
             $("#allDay").prop("checked", true);
-            startDate.data("DateTimePicker").date(moment(event.start).utc());
-            endDate.data("DateTimePicker").date(moment(event.end).subtract(1, "day").utc());
+            startDate.data("DateTimePicker").date(moment(event.s).utc());
+            endDate.data("DateTimePicker").date(moment(event.e).subtract(1, "day").utc());
             startTime.data("DateTimePicker").date(null);
             endTime.data("DateTimePicker").date(null);
         }
@@ -237,12 +247,12 @@ Meteor.startup(() => {
             $("#startTime").prop("disabled", false);
             $("#endTime").prop("disabled", false);
             $("#allDay").prop("checked", false);
-            startDate.data("DateTimePicker").date(moment(event.start).utc());
-            endDate.data("DateTimePicker").date(moment(event.start).utc());
-            startTime.data("DateTimePicker").date(moment(event.start).utc());
-            endTime.data("DateTimePicker").date(moment(event.end).utc());
+            startDate.data("DateTimePicker").date(moment(event.s).utc());
+            endDate.data("DateTimePicker").date(moment(event.s).utc());
+            startTime.data("DateTimePicker").date(moment(event.s).utc());
+            endTime.data("DateTimePicker").date(moment(event.e).utc());
         }
-        if (event.repeat) {
+        if (event.r) {
             $("#repeatType").prop("disabled", false);
             $("#repeatStart").prop("disabled", false);
             $("#repeatEnd").prop("disabled", false);
@@ -251,15 +261,15 @@ Meteor.startup(() => {
             $("#repeatWeekDay").prop("disabled", false);
             $("#repeatMonth").prop("disabled", false);
             $("#repeatDate").prop("disabled", false);
-            $("#repeatType").val(event.repeat.type);
+            $("#repeatType").val(event.r.t);
             $("#repeat").prop("checked", true);
-            repeatStart.data("DateTimePicker").date(moment(event.repeat.start).utc());
-            repeatEnd.data("DateTimePicker").date(moment(event.repeat.end).utc());
-            $("#repeatSkip").val(event.repeat.skip);
-            $("#repeatWeekNumber").val(event.repeat.weekNumber || 1);
-            $("#repeatWeekDay").val(event.repeat.weekDays || []);
-            $("#repeatMonth").val(event.repeat.month || 1);
-            $("#repeatDate").val(event.repeat.date || 1);
+            repeatStart.data("DateTimePicker").date(moment(event.r.s).utc());
+            repeatEnd.data("DateTimePicker").date(moment(event.r.e).utc());
+            $("#repeatSkip").val(event.r.k);
+            $("#repeatWeekNumber").val(event.r.n || 1);
+            $("#repeatWeekDay").val(event.r.w || []);
+            $("#repeatMonth").val(event.r.m || 1);
+            $("#repeatDate").val(event.r.d || 1);
         }
         else {
             $("#repeatType").prop("disabled", true);
@@ -272,8 +282,8 @@ Meteor.startup(() => {
             $("#repeatDate").prop("disabled", true);
             $("#repeatType").val(0);
             $("#repeat").prop("checked", false);
-            repeatStart.data("DateTimePicker").date(moment(event.start).utc().stripTime());
-            repeatEnd.data("DateTimePicker").date(moment(event.start).utc().stripTime());
+            repeatStart.data("DateTimePicker").date(moment(event.s).utc().stripTime());
+            repeatEnd.data("DateTimePicker").date(moment(event.s).utc().stripTime());
             $("#repeatSkip").val(0);
             $("#repeatWeekNumber").val(1);
             $("#repeatWeekDay").val(0);
@@ -355,7 +365,7 @@ Meteor.startup(() => {
                             if (error.error === "event-amount-exceeded") {
                                 bootbox.alert({
                                     title: "Error",
-                                    message: "Your total amount of events has exceeded 100. To continue to add more events, please delete some events."
+                                    message: "Your total amount of events has exceeded 500. To continue to add more events, please delete some events."
                                 });
                             }
                             else if (error.error === "not-logged-in") {
@@ -364,20 +374,29 @@ Meteor.startup(() => {
                                     message: "You are not logged in."
                                 });
                             }
+                            else if (error.error === "date-out-of-range") {
+                                bootbox.alert({
+                                    title: "Error",
+                                    message: "Either the start or end date is out of range. Please make sure that both dates are between 1500 and 2500."
+                                });
+                            }
                             else {
                                 bootbox.alert({
                                     title: "Error",
-                                    message: "An error occurred. Please try again later."
+                                    message: `An error occurred. Please try again later.
+                                    Error string: <code>${error.error}</code>.`
                                 });
                             }
                         }
                     });
                 },
                 eventClick(event) {
-                    event = CalEvents.find().fetch().find((a) => a._id === event._id);
+                    event = CalEvents.findOne({
+                        _id: event._id
+                    });
                     if (event) {
                         Session.set("selectedEvent", event._id);
-                        Session.set("repeatType", event.repeat ? event.repeat.type : 0);
+                        Session.set("repeatType", event.r ? event.r.t : 0);
                         showModal("editEvent", "show");
                     }
                 },
@@ -386,51 +405,79 @@ Meteor.startup(() => {
                         message: "Please wait while the event is being moved to a new time.",
                         title: "Moving Event"
                     });
-                    if (jsEvent.ctrlKey || jsEvent.metaKey) {
-                        Meteor.call("addEvent", moment(event.start).toISOString(), !(!event.start.hasTime()), (error, result) => {
-                            if (!error) {
-                                Meteor.call("dropEvent", result, event.title, moment(event.start).toISOString(), event.end ? moment(event.end).toISOString() : null, !event.start.hasTime(), (error, result) => {
-                                    wait.modal("hide");
-                                    if (error) {
-                                        console.log(error.error);
-                                        if (error.error === "event-name-length") {
-                                            bootbox.alert({
-                                                title: "Error",
-                                                message: "The name given to the event is too long. Please make sure that it is under 50 characters."
-                                            });
-                                        }
-                                        else {
-                                            bootbox.alert({
-                                                title: "Error",
-                                                message: "An error occurred. Please try again later."
-                                            });
-                                        }
-                                        revert();
-                                    }
-                                });
-                            }
+                    if (CalEvents.findOne({
+                            _id: event._id
+                        }).r) {
+                        wait.modal("hide");
+                        bootbox.alert({
+                            title: "Error",
+                            message: "Dragging repeated events are currently not supported."
                         });
+                        revert();
                     }
                     else {
-                        Meteor.call("dropEvent", event._id, event.title, moment(event.start).toISOString(), event.end ? moment(event.end).toISOString() : null, !event.start.hasTime(), (error, result) => {
-                            wait.modal("hide");
-                            if (error) {
-                                console.log(error.error);
-                                if (error.error === "event-name-length") {
+                        if (jsEvent.ctrlKey || jsEvent.metaKey) {
+                            Meteor.call("addEvent", moment(event.start).toISOString(), !(!event.start.hasTime()), (error, result) => {
+                                if (error) {
+                                    console.log(error.error);
+                                }
+                                if (!error) {
+                                    Meteor.call("dropEvent", result, event.title, moment(event.start).toISOString(), event.end ? moment(event.end).toISOString() : null, !event.start.hasTime(), (error, result) => {
+                                        wait.modal("hide");
+                                        if (error) {
+                                            console.log(error.error);
+                                            bootbox.alert({
+                                                title: "Error",
+                                                message: `An error occurred. Please try again later.
+                                    Error string: <code>${error.error}</code>.`
+                                            });
+                                            revert();
+                                        }
+                                    });
+                                }
+                                else if (error.error === "event-amount-exceeded") {
                                     bootbox.alert({
                                         title: "Error",
-                                        message: "The name given to the event is too long. Please make sure that it is under 50 characters."
+                                        message: "Your total amount of events has exceeded 500. To continue to add more events, please delete some events."
+                                    });
+                                }
+                                else if (error.error === "not-logged-in") {
+                                    bootbox.alert({
+                                        title: "Error",
+                                        message: "You are not logged in."
+                                    });
+                                }
+                                else if (error.error === "date-out-of-range") {
+                                    bootbox.alert({
+                                        title: "Error",
+                                        message: "Either the start or end date is out of range. Please make sure that both dates are between 1500 and 2500."
                                     });
                                 }
                                 else {
                                     bootbox.alert({
                                         title: "Error",
-                                        message: "An error occurred. Please try again later."
+                                        message: `An error occurred. Please try again later.
+                                    Error string: <code>${error.error}</code>.`
                                     });
                                 }
-                                revert();
-                            }
-                        });
+                            });
+                        }
+                        else {
+                            Meteor.call("dropEvent", event._id, event.title, moment(event.start).toISOString(), event.end ? moment(event.end).toISOString() : null, !event.start.hasTime(), CalEvents.findOne({
+                                _id: event._id
+                            }).r, (error, result) => {
+                                wait.modal("hide");
+                                if (error) {
+                                    console.log(error.error);
+                                    bootbox.alert({
+                                        title: "Error",
+                                        message: `An error occurred. Please try again later.
+                                    Error string: <code>${error.error}</code>.`
+                                    });
+                                    revert();
+                                }
+                            });
+                        }
                     }
                 },
                 eventResize(event, delta, revert) {
@@ -438,24 +485,19 @@ Meteor.startup(() => {
                         message: "Please wait while the event is being resized.",
                         title: "Resizing Event"
                     });
-                    Meteor.call("dropEvent", event._id, event.title, moment(event.start).toISOString(), event.end ? moment(event.end).toISOString() : null, !event.start.hasTime(), CalEvents.findOne({
+                    Meteor.call("dropEvent", event._id, CalEvents.findOne({
                         _id: event._id
-                    }).repeat, (error, result) => {
+                    }).t, moment(event.start).toISOString(), event.end ? moment(event.end).toISOString() : null, !event.start.hasTime(), CalEvents.findOne({
+                        _id: event._id
+                    }).r, (error, result) => {
                         wait.modal("hide");
                         if (error) {
                             console.log(error.error);
-                            if (error.error === "event-name-length") {
-                                bootbox.alert({
-                                    title: "Error",
-                                    message: "The name given to the event is too long. Please make sure that it is under 50 characters."
-                                });
-                            }
-                            else {
-                                bootbox.alert({
-                                    title: "Error",
-                                    message: "An error occurred. Please try again later."
-                                });
-                            }
+                            bootbox.alert({
+                                title: "Error",
+                                message: `An error occurred. Please try again later.
+                                    Error string: <code>${error.error}</code>.`
+                            });
                             revert();
                         }
                     });
@@ -539,7 +581,7 @@ Meteor.startup(() => {
                 return Session.get("allEvents").sort((a, b) => new Date(a.start) - new Date(b.start) || a.title.toLowerCase().charCodeAt() - b.title.toLowerCase().charCodeAt()).slice(parseInt(Router.current().params.p, 10) * 15 - 15, parseInt(Router.current().params.p, 10) * 15).map((a) => {
                     a.id = a._id;
                     delete a._id;
-                    if (a.allDay) {
+                    if (a.a) {
                         a.start = moment(a.start).utc().format("LL");
                         a.end = moment(a.end).subtract(1, "day").utc().format("LL");
                     }
@@ -555,7 +597,7 @@ Meteor.startup(() => {
         "click #deleteEvent" () {
             bootbox.confirm({
                 title: "Delete Event",
-                message: "Are you sure you want to delete this event? It cannot be undone.",
+                message: "Are you sure you want to delete this event? For repeated events, all occurrences will be deleted. This action cannot be undone.",
                 callback(result) {
                     if (result) {
                         let wait = bootbox.dialog({
@@ -568,7 +610,8 @@ Meteor.startup(() => {
                                 console.log(error.error);
                                 bootbox.alert({
                                     title: "Error",
-                                    message: "An error occurred. Please try again later."
+                                    message: `An error occurred. Please try again later.
+                                    Error string: <code>${error.error}</code>.`
                                 });
                             }
                         });
@@ -584,92 +627,171 @@ Meteor.startup(() => {
             let repeat = false;
             if ($("#repeat").prop("checked")) {
                 repeat = {
-                    type: parseFloat($("#repeatType").val()),
-                    start: moment(repeatStart.data("DateTimePicker").date().stripTime()).toISOString(),
-                    end: moment(repeatEnd.data("DateTimePicker").date().stripTime()).toISOString(),
-                    skip: parseFloat($("#repeatSkip").val())
+                    t: parseFloat($("#repeatType").val()),
+                    s: moment(repeatStart.data("DateTimePicker").date().stripTime()).toISOString(),
+                    e: moment(repeatEnd.data("DateTimePicker").date().stripTime()).toISOString(),
+                    k: parseFloat($("#repeatSkip").val())
                 };
                 switch (parseFloat($("#repeatType").val())) {
                     case 0:
                         break;
                     case 1:
-                        repeat.weekDays = $("#repeatWeekDay").val() ? $("#repeatWeekDay").val().map((a) => parseFloat(a)) : [];
+                        repeat.w = $("#repeatWeekDay").val() ? $("#repeatWeekDay").val().map((a) => parseFloat(a)) : [];
                         break;
                     case 2:
-                        repeat.date = parseFloat($("#repeatDate").val());
+                        repeat.d = parseFloat($("#repeatDate").val());
                         break;
                     case 3:
-                        repeat.weekDays = $("#repeatWeekDay").val() ? $("#repeatWeekDay").val().map((a) => parseFloat(a)) : [];
-                        repeat.weekNumber = parseFloat($("#repeatWeekNumber").val());
+                        repeat.w = $("#repeatWeekDay").val() ? $("#repeatWeekDay").val().map((a) => parseFloat(a)) : [];
+                        repeat.n = parseFloat($("#repeatWeekNumber").val());
                         break;
                     case 4:
-                        repeat.month = parseFloat($("#repeatMonth").val());
-                        repeat.date = parseFloat($("#repeatDate").val());
+                        repeat.m = parseFloat($("#repeatMonth").val());
+                        repeat.d = parseFloat($("#repeatDate").val());
                         break;
                     case 5:
-                        repeat.weekDays = $("#repeatWeekDay").val() ? $("#repeatWeekDay").val().map((a) => parseFloat(a)) : [];
-                        repeat.weekNumber = parseFloat($("#repeatWeekNumber").val());
-                        repeat.month = parseFloat($("#repeatMonth").val());
+                        repeat.w = $("#repeatWeekDay").val() ? $("#repeatWeekDay").val().map((a) => parseFloat(a)) : [];
+                        repeat.n = parseFloat($("#repeatWeekNumber").val());
+                        repeat.m = parseFloat($("#repeatMonth").val());
                         break;
                 }
             }
-            Meteor.call("dropEvent", Session.get("selectedEvent"), $("#eventName").val(), $("#allDay").prop("checked") ? moment(startDate.data("DateTimePicker").date().stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked") ? moment(endDate.data("DateTimePicker").date().add(1, "day").stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked"), repeat, (error) => {
-                wait.modal("hide");
-                if (error) {
-                    console.log(error.error);
-                    if (error.error === "event-name-length") {
-                        bootbox.alert({
-                            title: "Error",
-                            message: "The name given to the event is too long. Please make sure that it is under 50 characters."
-                        });
+            if (loadEvents([{
+                    _id: Meteor.uuid(),
+                    s: $("#allDay").prop("checked") ? moment(startDate.data("DateTimePicker").date().stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(),
+                    e: $("#allDay").prop("checked") ? moment(endDate.data("DateTimePicker").date().add(1, "day").stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(),
+                    a: $("#allDay").prop("checked"),
+                    r: repeat
+                }]).length === 0) {
+                bootbox.confirm({
+                    title: "Warning",
+                    message: "This event cannot be shown on the calendar. If you proceed, this event would be automatically deleted.",
+                    callback(result) {
+                        if (!result) {
+                            wait.modal("hide");
+                        }
+                        else {
+                            Meteor.call("dropEvent", Session.get("selectedEvent"), $("#eventName").val(), $("#allDay").prop("checked") ? moment(startDate.data("DateTimePicker").date().stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked") ? moment(endDate.data("DateTimePicker").date().add(1, "day").stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked"), repeat, (error) => {
+                                wait.modal("hide");
+                                if (error) {
+                                    console.log(error.error);
+                                    if (error.error === "event-name-length") {
+                                        bootbox.alert({
+                                            title: "Error",
+                                            message: "The name given to the event is too long. Please make sure that it is under 50 characters."
+                                        });
+                                    }
+                                    else if (error.error === "skip-less-than-zero") {
+                                        bootbox.alert({
+                                            title: "Error",
+                                            message: "The number of time to skip for repeats is less than zero."
+                                        });
+                                    }
+                                    else if (error.error === "day-of-week-length") {
+                                        bootbox.alert({
+                                            title: "Error",
+                                            message: "Please select one or more days of the week."
+                                        });
+                                    }
+                                    else if (error.error === "day-of-month-out-of-range") {
+                                        bootbox.alert({
+                                            title: "Error",
+                                            message: "Please make sure that the date of month is between 1 and 31."
+                                        });
+                                    }
+                                    else if (error.error === "start-date-after-end") {
+                                        bootbox.alert({
+                                            title: "Error",
+                                            message: "Please make sure that the start date is not later than the end date."
+                                        });
+                                    }
+                                    else if (error.error === "repeat-start-date-after-end") {
+                                        bootbox.alert({
+                                            title: "Error",
+                                            message: "Please make sure that the repeat start date is not later than the end date."
+                                        });
+                                    }
+                                    else {
+                                        bootbox.alert({
+                                            title: "Error",
+                                            message: `An error occurred. Please try again later.
+                                    Error string: <code>${error.error}</code>.`
+                                        });
+                                    }
+                                }
+                            });
+                        }
                     }
-                    else if (error.error === "day-of-week-length") {
-                        bootbox.alert({
-                            title: "Error",
-                            message: "Please select one or more days of the week."
-                        });
+                });
+            }
+            else {
+                Meteor.call("dropEvent", Session.get("selectedEvent"), $("#eventName").val(), $("#allDay").prop("checked") ? moment(startDate.data("DateTimePicker").date().stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked") ? moment(endDate.data("DateTimePicker").date().add(1, "day").stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked"), repeat, (error) => {
+                    wait.modal("hide");
+                    if (error) {
+                        console.log(error.error);
+                        if (error.error === "event-name-length") {
+                            bootbox.alert({
+                                title: "Error",
+                                message: "The name given to the event is too long. Please make sure that it is under 50 characters."
+                            });
+                        }
+                        else if (error.error === "skip-less-than-zero") {
+                            bootbox.alert({
+                                title: "Error",
+                                message: "The number of time to skip for repeats is less than zero."
+                            });
+                        }
+                        else if (error.error === "day-of-week-length") {
+                            bootbox.alert({
+                                title: "Error",
+                                message: "Please select one or more days of the week."
+                            });
+                        }
+                        else if (error.error === "day-of-month-out-of-range") {
+                            bootbox.alert({
+                                title: "Error",
+                                message: "Please make sure that the date of month is between 1 and 31."
+                            });
+                        }
+                        else if (error.error === "start-date-after-end") {
+                            bootbox.alert({
+                                title: "Error",
+                                message: "Please make sure that the start date is not later than the end date."
+                            });
+                        }
+                        else if (error.error === "repeat-start-date-after-end") {
+                            bootbox.alert({
+                                title: "Error",
+                                message: "Please make sure that the repeat start date is not later than the end date."
+                            });
+                        }
+                        else {
+                            bootbox.alert({
+                                title: "Error",
+                                message: `An error occurred. Please try again later.
+                                    Error string: <code>${error.error}</code>.`
+                            });
+                        }
                     }
-                    else if (error.error === "date-out-of-range") {
-                        bootbox.alert({
-                            title: "Error",
-                            message: "Please make sure that the date is between 1 and 31."
-                        });
-                    }
-                    else if (error.error === "start-date-after-end") {
-                        bootbox.alert({
-                            title: "Error",
-                            message: "Please make sure that the start date is not later than the end date."
-                        });
-                    }
-                    else if (error.error === "repeat-start-date-after-end") {
-                        bootbox.alert({
-                            title: "Error",
-                            message: "Please make sure that the repeat start date is not later than the end date."
-                        });
-                    }
-                    else {
-                        bootbox.alert({
-                            title: "Error",
-                            message: "An error occurred. Please try again later."
-                        });
-                    }
-                }
-            });
+                });
+            }
         },
         "change #allDay" () {
-            let event = CalEvents.find().fetch().find((a) => Session.equals("selectedEvent", a._id)) || {
-                title: "",
-                start: "",
-                end: "",
-                allDay: ""
+            let event = CalEvents.findOne({
+                _id: Session.get("selectedEvent")
+            }) || {
+                t: "",
+                s: "",
+                e: "",
+                a: ""
             };
             if ($("#allDay").prop("checked")) {
                 $("#startDate").prop("disabled", false);
                 $("#endDate").prop("disabled", false);
                 $("#startTime").prop("disabled", true);
                 $("#endTime").prop("disabled", true);
-                startDate.data("DateTimePicker").date(moment(event.start).utc());
-                endDate.data("DateTimePicker").date(moment(event.end).subtract(1, "day").utc());
+                startDate.data("DateTimePicker").date(moment(event.s).utc());
+                endDate.data("DateTimePicker").date(moment(event.e).subtract(1, "day").utc());
                 startTime.data("DateTimePicker").date(null);
                 endTime.data("DateTimePicker").date(null);
             }
@@ -678,25 +800,27 @@ Meteor.startup(() => {
                 $("#endDate").prop("disabled", true);
                 $("#startTime").prop("disabled", false);
                 $("#endTime").prop("disabled", false);
-                startDate.data("DateTimePicker").date(moment(event.start).utc());
-                endDate.data("DateTimePicker").date(moment(event.start).utc());
-                startTime.data("DateTimePicker").date(moment(event.start).utc());
-                endTime.data("DateTimePicker").date(moment(event.end).utc());
+                startDate.data("DateTimePicker").date(moment(event.s).utc());
+                endDate.data("DateTimePicker").date(moment(event.s).utc());
+                startTime.data("DateTimePicker").date(moment(event.s).utc());
+                endTime.data("DateTimePicker").date(moment(event.e).utc());
             }
         },
         "change #repeatType" () {
             Session.set("repeatType", parseFloat($("#repeatType").val()));
         },
         "change #repeat" () {
-            let event = CalEvents.find().fetch().find((a) => Session.equals("selectedEvent", a._id)) || {
-                title: "",
-                start: "",
-                end: "",
-                allDay: "",
-                repeat: false
+            let event = CalEvents.findOne({
+                _id: Session.get("selectedEvent")
+            }) || {
+                t: "",
+                s: "",
+                e: "",
+                a: "",
+                r: false
             };
             if ($("#repeat").prop("checked")) {
-                Session.set("repeatType", event.repeat ? event.repeat.type : 0);
+                Session.set("repeatType", event.r ? event.r.t : 0);
                 $("#repeatType").prop("disabled", false);
                 $("#repeatStart").prop("disabled", false);
                 $("#repeatEnd").prop("disabled", false);
@@ -705,14 +829,14 @@ Meteor.startup(() => {
                 $("#repeatWeekDay").prop("disabled", false);
                 $("#repeatMonth").prop("disabled", false);
                 $("#repeatDate").prop("disabled", false);
-                $("#repeatType").val(event.repeat ? event.repeat.type : 0);
-                repeatStart.data("DateTimePicker").date(event.repeat ? moment(event.repeat.start).utc() : moment(event.start).utc());
-                repeatEnd.data("DateTimePicker").date(event.repeat ? moment(event.repeat.end).utc() : moment(event.start).utc());
-                $("#repeatSkip").val(event.repeat ? event.repeat.skip : 0);
-                $("#repeatWeekNumber").val(event.repeat ? event.repeat.weekNumber : 1);
-                $("#repeatWeekDay").val(event.repeat ? event.repeat.weekDays : []);
-                $("#repeatMonth").val(event.repeat ? event.repeat.month : 1);
-                $("#repeatDate").val(event.repeat ? event.repeat.weekNumber : 1);
+                $("#repeatType").val(event.r ? event.r.t : 0);
+                repeatStart.data("DateTimePicker").date(event.r ? moment(event.r.s).utc() : moment(event.s).utc());
+                repeatEnd.data("DateTimePicker").date(event.r ? moment(event.r.e).utc() : moment(event.s).utc());
+                $("#repeatSkip").val(event.r ? event.r.k : 0);
+                $("#repeatWeekNumber").val(event.r ? event.r.n : 1);
+                $("#repeatWeekDay").val(event.r ? event.r.w : []);
+                $("#repeatMonth").val(event.r ? event.r.m : 1);
+                $("#repeatDate").val(event.r ? event.r.d : 1);
             }
             else {
                 Session.set("repeatType", 0);
@@ -725,8 +849,8 @@ Meteor.startup(() => {
                 $("#repeatMonth").prop("disabled", true);
                 $("#repeatDate").prop("disabled", true);
                 $("#repeatType").val(0);
-                repeatStart.data("DateTimePicker").date(moment(event.start).utc().stripTime());
-                repeatEnd.data("DateTimePicker").date(moment(event.start).utc().stripTime());
+                repeatStart.data("DateTimePicker").date(moment(event.s).utc().stripTime());
+                repeatEnd.data("DateTimePicker").date(moment(event.s).utc().stripTime());
                 $("#repeatSkip").val(0);
                 $("#repeatWeekNumber").val(1);
                 $("#repeatWeekDay").val(0);
@@ -749,10 +873,12 @@ Meteor.startup(() => {
             }
         },
         "click tr" () {
-            let event = CalEvents.find().fetch().find((a) => a._id === this.id);
+            let event = CalEvents.findOne({
+                _id: this.id
+            });
             if (event) {
-                Session.set("selectedEvent", this.id);
-                Session.set("repeatType", this.repeat ? this.repeat.type : 0);
+                Session.set("selectedEvent", event._id);
+                Session.set("repeatType", event.r ? event.r.t : 0);
                 showModal("editEvent", "show");
             }
         }

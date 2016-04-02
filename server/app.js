@@ -21,14 +21,14 @@ Meteor.startup(() => {
                 }
                 if (this.userId) {
                     if (CalEvents.find({
-                            owner: this.userId
-                        }).count() <= 100) {
+                            o: this.userId
+                        }).count() <= 500) {
                         return CalEvents.insert({
-                            title: "New Event",
-                            owner: this.userId,
-                            start: moment(eventStart).toISOString(),
-                            end: allDay ? moment(eventStart).add(1, "day").toISOString() : moment(eventStart).toISOString(),
-                            allDay: allDay
+                            t: "New Event",
+                            o: this.userId,
+                            s: moment(eventStart).toISOString(),
+                            e: allDay ? moment(eventStart).add(1, "day").toISOString() : moment(eventStart).toISOString(),
+                            a: allDay
                         });
                     }
                     else {
@@ -59,135 +59,132 @@ Meteor.startup(() => {
                     throw new Meteor.Error("start-date-after-end");
                 }
                 if (repeat) {
-                    check(repeat.type, Match.Integer);
-                    check(repeat.skip, Match.Integer);
-                    check(repeat.skip, Match.Where((a) => a >= 0));
-                    if (repeat.start !== moment(repeat.start).toISOString()) {
+                    check(repeat.t, Match.Integer);
+                    check(repeat.k, Number);
+                    if (repeat.k < 0) {
+                        throw new Meteor.Error("skip-less-than-zero");
+                    }
+                    if (repeat.s !== moment(repeat.s).toISOString()) {
                         throw new Meteor.Error("expected-ISO-string");
                     }
-                    if (repeat.end !== moment(repeat.end).toISOString()) {
+                    if (repeat.e !== moment(repeat.e).toISOString()) {
                         throw new Meteor.Error("expected-ISO-string");
                     }
-                    if (moment(repeat.start).isBefore([1500, 0, 1]) || moment(repeat.start).isAfter([2500, 11, 31])) {
+                    if (moment(repeat.s).isBefore([1500, 0, 1]) || moment(repeat.s).isAfter([2500, 11, 31])) {
                         throw new Meteor.Error("date-out-of-range");
                     }
-                    if (moment(repeat.end).isBefore([1500, 0, 1]) || moment(repeat.end).isAfter([2500, 11, 31])) {
+                    if (moment(repeat.e).isBefore([1500, 0, 1]) || moment(repeat.e).isAfter([2500, 11, 31])) {
                         throw new Meteor.Error("date-out-of-range");
                     }
-                    if (moment(repeat.start).isAfter(repeat.end)) {
+                    if (moment(repeat.s).isAfter(repeat.e)) {
                         throw new Meteor.Error("repeat-start-date-after-end");
                     }
-                    if (repeat.type === 0) { //daily
+                    if (repeat.t === 0) { //daily
                         repeat = {
-                            type: repeat.type,
-                            skip: repeat.skip,
-                            start: moment(repeat.start).toISOString(),
-                            end: moment(repeat.end).toISOString()
+                            t: repeat.t,
+                            k: parseInt(repeat.k, 10),
+                            s: moment(repeat.s).toISOString(),
+                            e: moment(repeat.e).toISOString()
                         };
                     }
-                    else if (repeat.type === 1) { //weekly
-                        check(repeat.weekDays, [Match.Integer]);
-                        if (repeat.weekDays.length < 1 || repeat.weekDays.length > 7) {
+                    else if (repeat.t === 1) { //weekly
+                        check(repeat.w, [Match.Integer]);
+                        if (repeat.w.length < 1 || repeat.w.length > 7) {
                             throw new Meteor.Error("day-of-week-length");
                         }
-                        repeat.weekDays.forEach((a) => {
-                            if (a < 0 || a > 6) {
-                                throw new Meteor.Error("day-of-week-out-of-range");
-                            }
-                        });
-                        repeat.weekDays.forEach((a) => {
+                        repeat.w.forEach((a) => {
                             if (a < 0 || a > 6) {
                                 throw new Meteor.Error("day-of-week-out-of-range");
                             }
                         });
                         repeat = {
-                            type: repeat.type,
-                            skip: repeat.skip,
-                            start: moment(repeat.start).toISOString(),
-                            end: moment(repeat.end).toISOString(),
-                            weekDays: repeat.weekDays
+                            t: repeat.t,
+                            k: parseInt(repeat.k, 10),
+                            s: moment(repeat.s).toISOString(),
+                            e: moment(repeat.e).toISOString(),
+                            w: repeat.w
                         };
                     }
-                    else if (repeat.type === 2) { //same day each month
-                        check(repeat.date, Match.Integer);
-                        if (repeat.date < 1 || repeat.date > 31) {
+                    else if (repeat.t === 2) { //same day each month
+                        check(repeat.d, Match.Integer);
+                        if (repeat.d < 1 || repeat.d > 31) {
                             throw new Meteor.Error("day-of-month-out-of-range");
                         }
                         repeat = {
-                            type: repeat.type,
-                            skip: repeat.skip,
-                            start: moment(repeat.start).toISOString(),
-                            end: moment(repeat.end).toISOString(),
-                            date: repeat.date
+                            t: repeat.t,
+                            k: parseInt(repeat.k, 10),
+                            s: moment(repeat.s).toISOString(),
+                            e: moment(repeat.e).toISOString(),
+                            d: repeat.d
                         };
                     }
-                    else if (repeat.type === 3) { //same week each month
-                        check(repeat.weekNumber, Match.Integer);
-                        if (repeat.weekNumber < 1 || repeat.weekNumber > 5) {
+                    else if (repeat.t === 3) { //same week each month
+                        check(repeat.n, Match.Integer);
+                        if (repeat.n < 1 || repeat.n > 5) {
                             throw new Meteor.Error("number-of-week-out-of-range");
                         }
-                        check(repeat.weekDays, [Match.Integer]);
-                        if (repeat.weekDays.length < 1 || repeat.weekDays.length > 7) {
+                        check(repeat.w, [Match.Integer]);
+                        if (repeat.w.length < 1 || repeat.w.length > 7) {
                             throw new Meteor.Error("day-of-week-range");
                         }
-                        repeat.weekDays.forEach((a) => {
+                        repeat.w.forEach((a) => {
                             if (a < 0 || a > 6) {
                                 throw new Meteor.Error("day-of-week-out-of-range");
                             }
                         });
                         repeat = {
-                            type: repeat.type,
-                            skip: repeat.skip,
-                            start: moment(repeat.start).toISOString(),
-                            end: moment(repeat.end).toISOString(),
-                            weekDays: repeat.weekDays,
-                            weekNumber: repeat.weekNumber
+                            t: repeat.t,
+                            k: parseInt(repeat.k, 10),
+                            s: moment(repeat.s).toISOString(),
+                            e: moment(repeat.e).toISOString(),
+                            w: repeat.w,
+                            n: repeat.n
                         };
                     }
-                    else if (repeat.type === 4) { //same day each year
-                        check(repeat.month, Match.Integer);
-                        if (repeat.month < 1 && repeat.month > 12) {
+                    else if (repeat.t === 4) { //same day each year
+                        check(repeat.m, Match.Integer);
+                        if (repeat.m < 1 && repeat.m > 12) {
                             throw new Meteor.Error("month-out-of-range");
                         }
-                        check(repeat.date, Match.Integer);
-                        if (repeat.date < 1 && repeat.month > 31) {
-                            throw new Meteor.Error("date-out-of-range");
+                        check(repeat.d, Match.Integer);
+                        if (repeat.d < 1 && repeat.m > 31) {
+                            throw new Meteor.Error("day-of-month-out-of-range");
                         }
                         repeat = {
-                            type: repeat.type,
-                            skip: repeat.skip,
-                            start: moment(repeat.start).toISOString(),
-                            end: moment(repeat.end).toISOString(),
-                            month: repeat.month,
-                            date: repeat.date
+                            t: repeat.t,
+                            k: parseInt(repeat.k, 10),
+                            s: moment(repeat.s).toISOString(),
+                            e: moment(repeat.e).toISOString(),
+                            m: repeat.m,
+                            d: repeat.d
                         };
                     }
-                    else if (repeat.type === 5) { //same week each year
-                        check(repeat.weekNumber, Match.Integer);
-                        if (repeat.weekNumber < 1 || repeat.weekNumber > 5) {
+                    else if (repeat.t === 5) { //same week each year
+                        check(repeat.n, Match.Integer);
+                        if (repeat.n < 1 || repeat.n > 5) {
                             throw new Meteor.Error("number-of-week-out-of-range");
                         }
-                        check(repeat.weekDays, [Match.Integer]);
-                        if (repeat.weekDays.length < 1 || repeat.weekDays.length > 7) {
+                        check(repeat.w, [Match.Integer]);
+                        if (repeat.w.length < 1 || repeat.w.length > 7) {
                             throw new Meteor.Error("day-of-week-length");
                         }
-                        repeat.weekDays.forEach((a) => {
+                        repeat.w.forEach((a) => {
                             if (a < 0 || a > 6) {
                                 throw new Meteor.Error("day-of-week-out-of-range");
                             }
                         });
-                        check(repeat.month, Match.Integer);
-                        if (repeat.month < 1 && repeat.month > 12) {
+                        check(repeat.m, Match.Integer);
+                        if (repeat.m < 1 && repeat.m > 12) {
                             throw new Meteor.Error("month-out-of-range");
                         }
                         repeat = {
-                            type: repeat.type,
-                            skip: repeat.skip,
-                            start: moment(repeat.start).toISOString(),
-                            end: moment(repeat.end).toISOString(),
-                            weekDays: repeat.weekDays,
-                            weekNumber: repeat.weekNumber,
-                            month: repeat.month
+                            t: repeat.t,
+                            k: parseInt(repeat.k, 10),
+                            s: moment(repeat.s).toISOString(),
+                            e: moment(repeat.e).toISOString(),
+                            w: repeat.w,
+                            n: repeat.n,
+                            m: repeat.m
                         };
                     }
                     else {
@@ -201,16 +198,16 @@ Meteor.startup(() => {
                         _id: eventId
                     }) && CalEvents.findOne({
                         _id: eventId
-                    }).owner === this.userId) {
+                    }).o === this.userId) {
                     CalEvents.update({
                         _id: eventId
                     }, {
                         $set: {
-                            title: eventName,
-                            start: moment(eventStart).toISOString(),
-                            end: eventEnd ? moment(eventEnd).toISOString() : (allDay ? moment(eventStart).add(1, "day").toISOString() : moment(eventStart).toISOString()),
-                            allDay: allDay,
-                            repeat: repeat
+                            t: eventName,
+                            s: moment(eventStart).toISOString(),
+                            e: eventEnd ? moment(eventEnd).toISOString() : (allDay ? moment(eventStart).add(1, "day").toISOString() : moment(eventStart).toISOString()),
+                            a: allDay,
+                            r: repeat
                         }
                     });
                 }
@@ -224,7 +221,7 @@ Meteor.startup(() => {
                         _id: eventId
                     }) && CalEvents.findOne({
                         _id: eventId
-                    }).owner === this.userId) {
+                    }).o === this.userId) {
                     CalEvents.remove({
                         _id: eventId
                     });
@@ -242,7 +239,7 @@ Meteor.startup(() => {
                 services: 0
             }
         }), CalEvents.find({
-            owner: this.userId
+            o: this.userId
         })];
     });
 });
