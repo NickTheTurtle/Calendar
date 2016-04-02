@@ -656,125 +656,55 @@ Meteor.startup(() => {
                         break;
                 }
             }
-            if (loadEvents([{
-                    _id: Meteor.uuid(),
-                    s: $("#allDay").prop("checked") ? moment(startDate.data("DateTimePicker").date().stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(),
-                    e: $("#allDay").prop("checked") ? moment(endDate.data("DateTimePicker").date().add(1, "day").stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(),
-                    a: $("#allDay").prop("checked"),
-                    r: repeat
-                }]).length === 0) {
-                bootbox.confirm({
-                    title: "Warning",
-                    message: "This event cannot be shown on the calendar. If you proceed, this event would be automatically deleted.",
-                    callback(result) {
-                        if (!result) {
-                            wait.modal("hide");
-                        }
-                        else {
-                            Meteor.call("dropEvent", Session.get("selectedEvent"), $("#eventName").val(), $("#allDay").prop("checked") ? moment(startDate.data("DateTimePicker").date().stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked") ? moment(endDate.data("DateTimePicker").date().add(1, "day").stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked"), repeat, (error) => {
-                                wait.modal("hide");
-                                if (error) {
-                                    console.log(error.error);
-                                    if (error.error === "event-name-length") {
-                                        bootbox.alert({
-                                            title: "Error",
-                                            message: "The name given to the event is too long. Please make sure that it is under 50 characters."
-                                        });
-                                    }
-                                    else if (error.error === "skip-less-than-zero") {
-                                        bootbox.alert({
-                                            title: "Error",
-                                            message: "The number of time to skip for repeats is less than zero."
-                                        });
-                                    }
-                                    else if (error.error === "day-of-week-length") {
-                                        bootbox.alert({
-                                            title: "Error",
-                                            message: "Please select one or more days of the week."
-                                        });
-                                    }
-                                    else if (error.error === "day-of-month-out-of-range") {
-                                        bootbox.alert({
-                                            title: "Error",
-                                            message: "Please make sure that the date of month is between 1 and 31."
-                                        });
-                                    }
-                                    else if (error.error === "start-date-after-end") {
-                                        bootbox.alert({
-                                            title: "Error",
-                                            message: "Please make sure that the start date is not later than the end date."
-                                        });
-                                    }
-                                    else if (error.error === "repeat-start-date-after-end") {
-                                        bootbox.alert({
-                                            title: "Error",
-                                            message: "Please make sure that the repeat start date is not later than the end date."
-                                        });
-                                    }
-                                    else {
-                                        bootbox.alert({
-                                            title: "Error",
-                                            message: `An error occurred. Please try again later.
-                                    Error string: <code>${error.error}</code>.`
-                                        });
-                                    }
-                                }
-                            });
-                        }
+            Meteor.call("dropEvent", Session.get("selectedEvent"), $("#eventName").val(), $("#allDay").prop("checked") ? moment(startDate.data("DateTimePicker").date().stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked") ? moment(endDate.data("DateTimePicker").date().add(1, "day").stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked"), repeat, (error) => {
+                wait.modal("hide");
+                if (error) {
+                    console.log(error.error);
+                    if (error.error === "event-name-length") {
+                        bootbox.alert({
+                            title: "Error",
+                            message: "The name given to the event is too long. Please make sure that it is under 50 characters."
+                        });
                     }
-                });
-            }
-            else {
-                Meteor.call("dropEvent", Session.get("selectedEvent"), $("#eventName").val(), $("#allDay").prop("checked") ? moment(startDate.data("DateTimePicker").date().stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(startTime.data("DateTimePicker").date().hours(), "hours").add(startTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked") ? moment(endDate.data("DateTimePicker").date().add(1, "day").stripTime()).toISOString() : moment(startDate.data("DateTimePicker").date().stripTime().add(endTime.data("DateTimePicker").date().hours(), "hours").add(endTime.data("DateTimePicker").date().minutes(), "minutes")).toISOString(), $("#allDay").prop("checked"), repeat, (error) => {
-                    wait.modal("hide");
-                    if (error) {
-                        console.log(error.error);
-                        if (error.error === "event-name-length") {
-                            bootbox.alert({
-                                title: "Error",
-                                message: "The name given to the event is too long. Please make sure that it is under 50 characters."
-                            });
-                        }
-                        else if (error.error === "skip-less-than-zero") {
-                            bootbox.alert({
-                                title: "Error",
-                                message: "The number of time to skip for repeats is less than zero."
-                            });
-                        }
-                        else if (error.error === "day-of-week-length") {
-                            bootbox.alert({
-                                title: "Error",
-                                message: "Please select one or more days of the week."
-                            });
-                        }
-                        else if (error.error === "day-of-month-out-of-range") {
-                            bootbox.alert({
-                                title: "Error",
-                                message: "Please make sure that the date of month is between 1 and 31."
-                            });
-                        }
-                        else if (error.error === "start-date-after-end") {
-                            bootbox.alert({
-                                title: "Error",
-                                message: "Please make sure that the start date is not later than the end date."
-                            });
-                        }
-                        else if (error.error === "repeat-start-date-after-end") {
-                            bootbox.alert({
-                                title: "Error",
-                                message: "Please make sure that the repeat start date is not later than the end date."
-                            });
-                        }
-                        else {
-                            bootbox.alert({
-                                title: "Error",
-                                message: `An error occurred. Please try again later.
-                                    Error string: <code>${error.error}</code>.`
-                            });
-                        }
+                    else if (error.error === "skip-less-than-zero") {
+                        bootbox.alert({
+                            title: "Error",
+                            message: "The number of time to skip for repeats is less than zero."
+                        });
                     }
-                });
-            }
+                    else if (error.error === "day-of-week-length") {
+                        bootbox.alert({
+                            title: "Error",
+                            message: "Please select one or more days of the week."
+                        });
+                    }
+                    else if (error.error === "day-of-month-out-of-range") {
+                        bootbox.alert({
+                            title: "Error",
+                            message: "Please make sure that the date of month is between 1 and 31."
+                        });
+                    }
+                    else if (error.error === "start-date-after-end") {
+                        bootbox.alert({
+                            title: "Error",
+                            message: "Please make sure that the start date is not later than the end date."
+                        });
+                    }
+                    else if (error.error === "repeat-start-date-after-end") {
+                        bootbox.alert({
+                            title: "Error",
+                            message: "Please make sure that the repeat start date is not later than the end date."
+                        });
+                    }
+                    else {
+                        bootbox.alert({
+                            title: "Error",
+                            message: `An error occurred. Please try again later.
+                                    Error string: <code>${error.error}</code>.`
+                        });
+                    }
+                }
+            });
         },
         "change #allDay" () {
             let event = CalEvents.findOne({
