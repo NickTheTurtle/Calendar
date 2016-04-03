@@ -242,4 +242,7 @@ Meteor.startup(() => {
             o: this.userId
         })];
     });
+    Accounts.config({
+        loginExpirationInDays: null
+    });
 });

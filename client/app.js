@@ -7,12 +7,12 @@ Meteor.startup(() => {
     let repeatStart;
     let repeatEnd;
     let calendar;
-    let loadEvents = (newEvents) => {
+    const loadEvents = (newEvents) => {
         let events = [];
         if (newEvents !== 0) {
             newEvents.forEach((a) => {
                 if (a.r) {
-                    var currentLength = events.length;
+                    const currentLength = events.length;
                     if (a.r.t === 0) {
                         for (let i = moment(a.r.s); i.isBefore(moment(a.r.e)) || i.isSame(moment(a.r.e)); i.add(a.r.k + 1, "days")) {
                             if (a.a) {
@@ -40,7 +40,7 @@ Meteor.startup(() => {
                     else if (a.r.t === 1) {
                         for (let i = moment(a.r.s); i.isBefore(moment(a.r.e)) || i.isSame(moment(a.r.e)); i.add(a.r.k + 1, "weeks")) {
                             for (let j of a.r.w) {
-                                let t = moment(i).day() <= j ? j : j + 7;
+                                const t = moment(i).day() <= j ? j : j + 7;
                                 if ((moment(i).day(t).isBefore(moment(a.r.e)) || moment(i).day(t).isSame(moment(a.r.e)))) {
                                     if (a.a) {
                                         events.push({
@@ -68,7 +68,7 @@ Meteor.startup(() => {
                     }
                     else if (a.r.t === 2) {
                         for (let i = moment(a.r.s); i.isBefore(moment(a.r.e)) || i.isSame(moment(a.r.e)); i.add(a.r.k + 1, "months")) {
-                            let t = moment(i).date() <= a.r.d ? (a.r.d <= moment(i).daysInMonth() ? a.r.d : moment(i).daysInMonth()) : a.r.d + moment(i).daysInMonth();
+                            const t = moment(i).date() <= a.r.d ? (a.r.d <= moment(i).daysInMonth() ? a.r.d : moment(i).daysInMonth()) : a.r.d + moment(i).daysInMonth();
                             if ((moment(i).date(t).isBefore(moment(a.r.e)) || moment(i).date(t).isSame(moment(a.r.e)))) {
                                 if (a.a) {
                                     events.push({
@@ -108,7 +108,7 @@ Meteor.startup(() => {
                                 weeksInMonth[moment(i).date(j).day()].push(j);
                             }
                             for (let j of a.r.w) {
-                                let t = a.r.n === 5 ? weeksInMonth[j][weeksInMonth[j].length - 1] : weeksInMonth[j][a.r.n - 1];
+                                const t = a.r.n === 5 ? weeksInMonth[j][weeksInMonth[j].length - 1] : weeksInMonth[j][a.r.n - 1];
                                 if ((moment(i).date(t).isBefore(moment(a.r.e)) || moment(i).date(t).isSame(moment(a.r.e)))) {
                                     if (a.a) {
                                         events.push({
@@ -136,7 +136,7 @@ Meteor.startup(() => {
                     }
                     else if (a.r.t === 4) {
                         for (let i = moment(a.r.s); i.isBefore(moment(a.r.e)) || i.isSame(moment(a.r.e)); i.add(a.r.k + 1, "years")) {
-                            let t = moment(i).month(a.r.m - 1).date(a.r.d <= moment(i).month(a.r.m - 1).daysInMonth() ? a.r.d : moment(i).month(a.r.m - 1).daysInMonth());
+                            const t = moment(i).month(a.r.m - 1).date(a.r.d <= moment(i).month(a.r.m - 1).daysInMonth() ? a.r.d : moment(i).month(a.r.m - 1).daysInMonth());
                             if (moment(t).isBefore(moment(a.r.e)) || moment(t).isSame(moment(a.r.e))) {
                                 if (a.a) {
                                     events.push({
@@ -176,7 +176,7 @@ Meteor.startup(() => {
                                 weeksInMonth[moment(i).month(a.r.m - 1).date(j).day()].push(j);
                             }
                             for (let j of a.r.w) {
-                                let t = a.r.n === 5 ? weeksInMonth[j][weeksInMonth[j].length - 1] : weeksInMonth[j][a.r.n - 1];
+                                const t = a.r.n === 5 ? weeksInMonth[j][weeksInMonth[j].length - 1] : weeksInMonth[j][a.r.n - 1];
                                 if ((moment(i).month(a.r.m - 1).date(t).isBefore(moment(a.r.e)) || moment(i).month(a.r.m - 1).date(t).isSame(moment(a.r.e)))) {
                                     if (a.a) {
                                         events.push({
@@ -203,7 +203,7 @@ Meteor.startup(() => {
                         }
                     }
                     if (events.length === currentLength) {
-                        Meteor.call("deleteEvent", a._id, function() {});
+                        Meteor.call("deleteEvent", a._id, () => {});
                     }
                 }
                 else {
@@ -219,9 +219,9 @@ Meteor.startup(() => {
         }
         return events;
     };
-    let showModal = (modal, state) => {
+    const showModal = (modal, state) => {
         $("#" + modal).modal(state);
-        let event = CalEvents.find().fetch().find((a) => Session.equals("selectedEvent", a._id)) || {
+        const event = CalEvents.find().fetch().find((a) => Session.equals("selectedEvent", a._id)) || {
             t: "",
             s: "",
             e: "",
@@ -307,16 +307,10 @@ Meteor.startup(() => {
                 Session.set("allEvents", Session.get("allEvents").concat(loadEvents([doc])));
             },
             changed(doc) {
-                let events = Session.get("allEvents");
-                events = events.filter((a) => {
-                    return a._id !== doc._id;
-                });
-                Session.set("allEvents", events.concat(loadEvents([doc])));
+                Session.set("allEvents", Session.get("allEvents").filter((a) => a._id !== doc._id).concat(loadEvents([doc])));
             },
             removed(doc) {
-                Session.set("allEvents", Session.get("allEvents").filter((a) => {
-                    return a._id !== doc._id;
-                }));
+                Session.set("allEvents", Session.get("allEvents").filter((a) => a._id !== doc._id));
             }
     });
     Template.main.onRendered(() => {
@@ -354,7 +348,7 @@ Meteor.startup(() => {
     Template.calendar.onRendered(() => {
         calendar = $("#calendar").fullCalendar({
             dayClick(date) {
-                    let wait = bootbox.dialog({
+                    const wait = bootbox.dialog({
                         message: "Please wait while a new event is being added.",
                         title: "Adding Event"
                     });
@@ -401,7 +395,7 @@ Meteor.startup(() => {
                     }
                 },
                 eventDrop(event, delta, revert, jsEvent) {
-                    let wait = bootbox.dialog({
+                    const wait = bootbox.dialog({
                         message: "Please wait while the event is being moved to a new time.",
                         title: "Moving Event"
                     });
@@ -481,7 +475,7 @@ Meteor.startup(() => {
                     }
                 },
                 eventResize(event, delta, revert) {
-                    let wait = bootbox.dialog({
+                    const wait = bootbox.dialog({
                         message: "Please wait while the event is being resized.",
                         title: "Resizing Event"
                     });
@@ -600,7 +594,7 @@ Meteor.startup(() => {
                 message: "Are you sure you want to delete this event? For repeated events, all occurrences will be deleted. This action cannot be undone.",
                 callback(result) {
                     if (result) {
-                        let wait = bootbox.dialog({
+                        const wait = bootbox.dialog({
                             message: "Please wait while the event is being deleted.",
                             title: "Deleting Event"
                         });
@@ -620,7 +614,7 @@ Meteor.startup(() => {
             });
         },
         "click #updateEvent" () {
-            let wait = bootbox.dialog({
+            const wait = bootbox.dialog({
                 message: "Please wait while the event is being updated.",
                 title: "Updating Event"
             });
@@ -707,7 +701,7 @@ Meteor.startup(() => {
             });
         },
         "change #allDay" () {
-            let event = CalEvents.findOne({
+            const event = CalEvents.findOne({
                 _id: Session.get("selectedEvent")
             }) || {
                 t: "",
@@ -740,7 +734,7 @@ Meteor.startup(() => {
             Session.set("repeatType", parseFloat($("#repeatType").val()));
         },
         "change #repeat" () {
-            let event = CalEvents.findOne({
+            const event = CalEvents.findOne({
                 _id: Session.get("selectedEvent")
             }) || {
                 t: "",
@@ -803,7 +797,7 @@ Meteor.startup(() => {
             }
         },
         "click tr" () {
-            let event = CalEvents.findOne({
+            const event = CalEvents.findOne({
                 _id: this.id
             });
             if (event) {
