@@ -1,6 +1,5 @@
 /* globals moment CalEvents */
 Meteor.startup(() => {
-    require("newrelic");
     Meteor.users.deny({
         insert() {
                 return false;
